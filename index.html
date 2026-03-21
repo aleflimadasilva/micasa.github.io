@@ -9,3 +9,34 @@ setInterval(() => {
     });
 }, 2000);
 </script>
+
+
+<script src="https://unpkg.com/mqtt/dist/mqtt.min.js"></script>
+
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Painel de Temperatura</title>
+</head>
+<body>
+
+<h1>Temperatura em Tempo Real</h1>
+<h2 id="temp">-- °C</h2>
+
+<script src="https://unpkg.com/mqtt/dist/mqtt.min.js"></script>
+
+<script>
+const client = mqtt.connect('wss://broker.hivemq.com:8000/mqtt');
+
+client.on('connect', () => {
+  console.log('Conectado!');
+  client.subscribe('casa/temperatura');
+});
+
+client.on('message', (topic, message) => {
+  document.getElementById("temp").innerText = message.toString() + " °C";
+});
+</script>
+
+</body>
+</html>
