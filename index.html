@@ -1,0 +1,11 @@
+<div id="temp">Carregando...</div>
+
+<script>
+setInterval(() => {
+  fetch("https://seu-servidor.com/api/temperatura")
+    .then(res => res.json())
+    .then(data => {
+      document.getElementById("temp").innerText = data.temp + " °C";
+    });
+}, 2000);
+</script>
