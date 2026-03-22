@@ -48,13 +48,15 @@ svg {
 .needle {
   width: 4px;
   height: 95px;
-  background: white;
+  background: linear-gradient(to top, #fff, #38bdf8);
   position: absolute;
   bottom: 18px;
   left: 50%;
   transform-origin: center bottom;
-  transform: translateX(-50%) rotate(0deg);
-  transition: transform 0.5s ease-out;
+  transform: translateX(-50%) rotate(-90deg);
+  transition: transform 0.4s ease-out;
+  border-radius: 2px;
+  box-shadow: 0 0 10px rgba(56,189,248,0.7);
 }
 
 /* Valor */
@@ -102,17 +104,25 @@ canvas {
   <div class="gauge">
     <svg viewBox="0 0 200 100">
 
+      <!-- FUNDO -->
+      <path d="M 10 100 A 90 90 0 0 1 190 100"
+        stroke="#1f2937" stroke-width="14"
+        fill="none" stroke-linecap="round"/>
+
       <!-- VERDE -->
-      <path d="M10 100 A90 90 0 0 1 90 20"
-        stroke="#22c55e" stroke-width="12" fill="none"/>
+      <path d="M 10 100 A 90 90 0 0 1 100 10"
+        stroke="#22c55e" stroke-width="14"
+        fill="none" stroke-linecap="round"/>
 
       <!-- AMARELO -->
-      <path d="M90 20 A90 90 0 0 1 140 20"
-        stroke="#facc15" stroke-width="12" fill="none"/>
+      <path d="M 100 10 A 90 90 0 0 1 150 30"
+        stroke="#facc15" stroke-width="14"
+        fill="none" stroke-linecap="round"/>
 
       <!-- VERMELHO -->
-      <path d="M140 20 A90 90 0 0 1 190 100"
-        stroke="#ef4444" stroke-width="12" fill="none"/>
+      <path d="M 150 30 A 90 90 0 0 1 190 100"
+        stroke="#ef4444" stroke-width="14"
+        fill="none" stroke-linecap="round"/>
 
     </svg>
 
@@ -161,7 +171,7 @@ client.on("error", () => {
   statusEl.innerText = "🔴 Erro";
 });
 
-/* GRÁFICO */
+/* GRÁFICO SUAVE */
 let temperaturas = [];
 let labels = [];
 
@@ -173,9 +183,10 @@ const chart = new Chart(document.getElementById("grafico"), {
       label: "Temperatura",
       data: temperaturas,
       borderColor: "#38bdf8",
+      backgroundColor: "rgba(56,189,248,0.1)",
       borderWidth: 2,
-      tension: 0,
-      stepped: true
+      tension: 0.4,
+      fill: true
     }]
   },
   options: {
@@ -193,17 +204,15 @@ const chart = new Chart(document.getElementById("grafico"), {
 function updateGauge(temp) {
   const needle = document.getElementById("needle");
 
-  // Limites
-  if (temp < 0) temp = 0;
-  if (temp > 50) temp = 50;
+  if (temp < -20) temp = -20;
+  if (temp > 100) temp = 100;
 
-  // 🔥 Correção: inverter eixo
-  let angle = (temp / 50) * 180 - 90;
+  let normalized = (temp + 20) / 120;
+  let angle = normalized * 180 - 90;
 
   needle.style.transform = `translateX(-50%) rotate(${angle}deg)`;
 
-  /* ALERTA */
-  if (temp > 32) {
+  if (temp > 70) {
     statusEl.innerText = "🔥 ALTA TEMPERATURA";
     statusEl.classList.add("alert");
   } else {
@@ -216,7 +225,7 @@ client.on("message", (topic, message) => {
   const temp = parseFloat(message.toString());
   if (isNaN(temp)) return;
 
-  document.getElementById("temp").innerText = temp + " °C";
+  document.getElementById("temp").innerText = temp.toFixed(2) + " °C";
 
   updateGauge(temp);
 
