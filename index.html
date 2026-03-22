@@ -2,7 +2,7 @@
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8">
-<title>Painel IoT PRO</title>
+<title>Painel IoT 1.0</title>
 
 <script src="https://unpkg.com/mqtt/dist/mqtt.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
@@ -212,7 +212,7 @@ function updateGauge(temp) {
 
   needle.style.transform = `translateX(-50%) rotate(${angle}deg)`;
 
-  if (temp > 70) {
+  if (temp > 33) {
     statusEl.innerText = "🔥 ALTA TEMPERATURA";
     statusEl.classList.add("alert");
   } else {
