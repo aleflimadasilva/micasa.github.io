@@ -2,69 +2,82 @@
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8">
-<title>Painel IoT - Temperatura</title>
+<title>Painel IoT</title>
 
 <script src="https://unpkg.com/mqtt/dist/mqtt.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
 <style>
 body {
+  margin: 0;
   font-family: Arial;
   background: #0f172a;
   color: white;
-  text-align: center;
 }
 
 .container {
-  max-width: 900px;
-  margin: auto;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 20px;
+  padding: 20px;
 }
 
-h1 {
-  margin-top: 20px;
+.card {
+  background: #111827;
+  border-radius: 12px;
+  padding: 20px;
+  width: 350px;
+  text-align: center;
+  box-shadow: 0 0 10px rgba(0,0,0,0.5);
 }
 
-#temp {
-  font-size: 40px;
-  margin: 10px;
+h2 {
+  margin-bottom: 10px;
 }
 
-/* Gauge */
+/* GAUGE */
 .gauge {
-  width: 250px;
-  height: 125px;
-  margin: auto;
   position: relative;
+  width: 250px;
+  height: 150px;
+  margin: auto;
 }
 
 .gauge svg {
-  transform: rotate(180deg);
+  width: 100%;
 }
 
- /* ponteiro do gauge */ 
 .needle {
   width: 4px;
-  height: 100px;
-  background: red;
+  height: 90px;
+  background: white;
   position: absolute;
-  
-  height: 90px; /* ajusta comprimento */
-  bottom: 5px;  /* sobe um pouco */
+  bottom: 20px;
   left: 50%;
-  bottom: 0;
-
   transform-origin: center bottom;
   transform: translateX(-50%) rotate(0deg);
+  border-radius: 2px;
 }
 
-/* Status */
+.center-value {
+  position: absolute;
+  bottom: 10px;
+  width: 100%;
+  text-align: center;
+  font-size: 32px;
+  font-weight: bold;
+}
+
+/* STATUS */
 .status {
   margin-top: 10px;
+  font-size: 14px;
   color: #94a3b8;
 }
 
 canvas {
-  margin-top: 30px;
+  margin-top: 20px;
 }
 </style>
 </head>
@@ -73,27 +86,34 @@ canvas {
 
 <div class="container">
 
-<h1>🌡️ Monitor de Temperatura</h1>
-<div id="temp">-- °C</div>
+<!-- GAUGE -->
+<div class="card">
+  <h2>🌡️ Sensor</h2>
 
-<!-- Gauge -->
-<div class="gauge">
-  <svg width="250" height="125">
-    <path d="M10 125 A115 115 0 0 1 240 125" stroke="#38bdf8" stroke-width="15" fill="none"/>
-  </svg>
-  <div class="needle" id="needle"></div>
+  <div class="gauge">
+    <svg viewBox="0 0 200 100">
+      <path d="M10 100 A90 90 0 0 1 190 100"
+        stroke="#38bdf8"
+        stroke-width="12"
+        fill="none"/>
+    </svg>
+
+    <div class="needle" id="needle"></div>
+    <div class="center-value" id="temp">-- °C</div>
+  </div>
+
+  <div class="status" id="status">Conectando...</div>
 </div>
 
-<div class="status" id="status">Conectando...</div>
-
-<canvas id="grafico"></canvas>
+<!-- GRÁFICO -->
+<div class="card">
+  <h2>📈 Linha do Tempo</h2>
+  <canvas id="grafico"></canvas>
+</div>
 
 </div>
 
 <script>
-/* =========================
-   CONFIG
-========================= */
 const MQTT_CONFIG = {
   host: "wss://28c03fa8cec54867b74cdb6592fcbc33.s1.eu.hivemq.cloud:8884/mqtt",
   username: "AlefSilva12",
@@ -101,9 +121,6 @@ const MQTT_CONFIG = {
   topic: "alefsilva/temperatura"
 };
 
-/* =========================
-   MQTT
-========================= */
 const client = mqtt.connect(MQTT_CONFIG.host, {
   username: MQTT_CONFIG.username,
   password: MQTT_CONFIG.password,
@@ -112,6 +129,7 @@ const client = mqtt.connect(MQTT_CONFIG.host, {
 
 const statusEl = document.getElementById("status");
 
+/* MQTT */
 client.on("connect", () => {
   statusEl.innerText = "🟢 Conectado";
   client.subscribe(MQTT_CONFIG.topic);
@@ -125,9 +143,7 @@ client.on("error", () => {
   statusEl.innerText = "🔴 Erro";
 });
 
-/* =========================
-   GRÁFICO (DENTE DE SERRA)
-========================= */
+/* GRÁFICO */
 let temperaturas = [];
 let labels = [];
 
@@ -138,41 +154,51 @@ const chart = new Chart(document.getElementById("grafico"), {
     datasets: [{
       label: "Temperatura",
       data: temperaturas,
+      borderColor: "#38bdf8",
       borderWidth: 2,
-      tension: 0, // 🔥 isso cria o efeito "dente de serra"
+      tension: 0,
       stepped: true
     }]
+  },
+  options: {
+    plugins: {
+      legend: {
+        labels: {
+          color: "white"
+        }
+      }
+    },
+    scales: {
+      x: {
+        ticks: { color: "white" }
+      },
+      y: {
+        ticks: { color: "white" }
+      }
+    }
   }
 });
 
-/* =========================
-   GAUGE
-========================= */
+/* GAUGE */
 function updateGauge(temp) {
   const needle = document.getElementById("needle");
 
-  // faixa de 0 a 50 graus
   let angle = (temp / 50) * 180;
-
   if (angle > 180) angle = 180;
   if (angle < 0) angle = 0;
 
-  needle.style.transform = `rotate(${angle}deg)`;
+  needle.style.transform = `translateX(-50%) rotate(${angle}deg)`;
 }
 
-/* =========================
-   RECEBIMENTO
-========================= */
+/* RECEBER DADOS */
 client.on("message", (topic, message) => {
   const temp = parseFloat(message.toString());
   if (isNaN(temp)) return;
 
   document.getElementById("temp").innerText = temp + " °C";
 
-  // Gauge
   updateGauge(temp);
 
-  // Gráfico
   const now = new Date().toLocaleTimeString();
   temperaturas.push(temp);
   labels.push(now);
