@@ -102,7 +102,7 @@ canvas {
   <h2>🌡️ Sensor</h2>
 
   <div class="gauge">
-    <svg viewBox="0 0 200 100">
+    <svg viewBox="0 0 100 100">
 
       <!-- FUNDO -->
       <path d="M 10 100 A 90 90 0 0 1 190 100"
@@ -211,7 +211,8 @@ function updateGauge(temp) {
   let angle = normalized * 180 - 90;
 
   needle.style.transform = `translateX(-50%) rotate(${angle}deg)`;
-
+  
+//limite de temperatura
   if (temp > 33) {
     statusEl.innerText = "🔥 ALTA TEMPERATURA";
     statusEl.classList.add("alert");
