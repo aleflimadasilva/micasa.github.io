@@ -1,269 +1,240 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-<meta charset="UTF-8">
-<title>Painel IoT 1.0 | Alef</title>
+    <meta charset="UTF-8">
+    <title>Painel IoT 1.0 | Alef</title>
 
-<script src="https://unpkg.com/mqtt/dist/mqtt.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://unpkg.com"></script>
+    <script src="https://cdn.jsdelivr.net"></script>
 
-<style>
-body {
-  margin: 0;
-  font-family: Arial;
-  background: #0a0000; /*edita a cor de fundo*/
-  color: white;
-}
+    <style>
+        body {
+            margin: 0;
+            font-family: Arial, sans-serif;
+            background: #0a0000;
+            color: white;
+        }
 
-.container {
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: center;
-  gap: 20px;
-  padding: 20px;
-}
-/*o objeto card abaixo parametriza as caixas/topicos do painel(mas nao as posicoes)*/
-.card {
-  background: #111827;
-  border-radius: 12px;
-  padding: 20px;
-  width: 350px;
-  text-align: center;
-  box-shadow: 0 0 15px rgba(0,0,0,0.6);
-}
+        .container {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 20px;
+            padding: 20px;
+        }
 
-/* GAUGE */
-.gauge {
-  position: relative;
-  width: 260px;
-  height: 150px;
-  margin: auto;
-}
-/*teste para adicionar umidade separadamente*/
-.umidade  {
-  position: relative;
-  width: 260px;
-  height: 150px;
-  margin: auto;
-}
-  
-svg {
-  width: 100%;
-}
+        .card {
+            background: #111827;
+            border-radius: 12px;
+            padding: 20px;
+            width: 350px;
+            text-align: center;
+            box-shadow: 0 0 15px rgba(0,0,0,0.6);
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+        }
 
-/* Ponteiro */
-.needle {
-  width: 4px;
-  height: 95px;
-  background: linear-gradient(to top, #fff, #38bdf8);
-  position: absolute;
-  bottom: 18px;
-  left: 50%;
-  transform-origin: center bottom;
-  transform: translateX(-50%) rotate(-90deg);
-  transition: transform 0.4s ease-out;
-  border-radius: 2px;
-  box-shadow: 0 0 10px rgba(56,189,248,0.7);
-}
+        /* GAUGE */
+        .gauge {
+            position: relative;
+            width: 260px;
+            height: 150px;
+            margin: auto;
+        }
+        
+        svg {
+            width: 100%;
+        }
 
-/* Valor */
-.center-value {
-  position: absolute;
-  bottom: 5px;
-  width: 100%;
-  text-align: center;
-  font-size: 32px;
-  font-weight: bold;
-}
+        /* Ponteiro */
+        .needle {
+            width: 4px;
+            height: 95px;
+            background: linear-gradient(to top, #fff, #38bdf8);
+            position: absolute;
+            bottom: 18px;
+            left: 50%;
+            transform-origin: center bottom;
+            transform: translateX(-50%) rotate(-90deg);
+            transition: transform 0.4s ease-out;
+            border-radius: 2px;
+            box-shadow: 0 0 10px rgba(56,189,248,0.7);
+        }
 
-/* STATUS */
-.status {
-  margin-top: 10px;
-  font-size: 14px;
-  color: #94a3b8;
-}
+        /* Valor Centralizado */
+        .center-value {
+            font-size: 32px;
+            font-weight: bold;
+            margin-top: 10px;
+        }
 
-/* ALERTA */
-.alert {
-  animation: blink 1s infinite;
-  color: #ef4444;
-}
+        .gauge .center-value {
+            position: absolute;
+            bottom: 5px;
+            width: 100%;
+        }
 
-@keyframes blink {
-  50% { opacity: 0.3; }
-}
+        /* STATUS */
+        .status {
+            margin-top: 15px;
+            font-size: 14px;
+            color: #94a3b8;
+        }
 
-/* GRÁFICO */
-canvas {
-  margin-top: 20px;
-}
-</style>
+        /* ALERTA */
+        .alert {
+            animation: blink 1s infinite;
+            color: #ef4444;
+        }
+
+        @keyframes blink {
+            50% { opacity: 0.3; }
+        }
+
+        /* GRÁFICO */
+        canvas {
+            margin-top: 20px;
+            max-height: 200px;
+        }
+    </style>
 </head>
 
 <body>
 
-<div class="container">
+    <div class="container">
 
-<!-- GAUGE -->
-<div class="card">
-  <h2>🌡️ Sensor do Quarto</h2>
+        <!-- CARD 1: GAUGE TEMPERATURA -->
+        <div class="card">
+            <h2>🌡️ Sensor do Quarto</h2>
+            <div class="gauge">
+                <svg viewBox="0 0 200 100">
+                    <path d="M 10 100 A 90 90 0 0 1 190 100" stroke="#1f2937" stroke-width="14" fill="none" stroke-linecap="round"/>
+                    <path d="M 10 100 A 90 90 0 0 1 100 10" stroke="#22c55e" stroke-width="14" fill="none" stroke-linecap="round"/>
+                    <path d="M 100 10 A 90 90 0 0 1 150 25" stroke="#facc15" stroke-width="14" fill="none" stroke-linecap="round"/>
+                    <path d="M 150 25 A 90 90 0 0 1 190 100" stroke="#ef4444" stroke-width="14" fill="none" stroke-linecap="round"/>
+                </svg>
+                <div class="needle" id="needle"></div>
+                <div class="center-value" id="temp">-- °C</div>
+            </div>
+            <div class="status" id="status">Conectando...</div>
+        </div>
 
-  <div class="gauge">
-    <svg viewBox="0 0 200 100">
+        <!-- CARD 2: GRÁFICO -->
+        <div class="card">
+            <h2>📈 Linha do Tempo</h2>
+            <canvas id="grafico"></canvas>
+            <div class="status">Histórico em tempo real</div>
+        </div>
 
-      <!-- FUNDO -->
-      <path d="M 10 100 A 90 90 0 0 1 190 100"
-        stroke="#1f2937" stroke-width="14"
-        fill="none" stroke-linecap="round"/>
+        <!-- CARD 3: UMIDADE (Corrigido para dentro do container) -->
+        <div class="card">
+            <h2>💧 Umidade</h2>
+            <div style="margin: auto;">
+                <div class="center-value" id="valor-umidade" style="font-size: 48px; color: #38bdf8;">-- %</div>
+            </div>
+            <div class="status">Sensor de Umidade Ativo</div>
+        </div>
 
-      <!-- VERDE -->
-      <path d="M 10 100 A 90 90 0 0 1 100 10"
-        stroke="#22c55e" stroke-width="14"
-        fill="none" stroke-linecap="round"/>
+    </div>
 
-      <!-- AMARELO -->
-      <path d="M 100 10 A 90 90 0 0 1 150 25"
-        stroke="#facc15" stroke-width="14"
-        fill="none" stroke-linecap="round"/>
+    <script>
+        const MQTT_CONFIG = {
+            host: "wss://28c03fa8cec54867b74cdb6592fcbc33.s1.eu.hivemq.cloud:8884/mqtt",
+            username: "AlefSilva12",
+            password: "@Alef123",
+            topic: "alefsilva/temperatura"
+            // Caso tenha um tópico de umidade, adicione aqui: topicUmidade: "alefsilva/umidade"
+        };
 
-      <!-- VERMELHO -->
-      <path d="M 150 25 A 90 90 0 0 1 190 100"
-        stroke="#ef4444" stroke-width="14"
-        fill="none" stroke-linecap="round"/>
+        const client = mqtt.connect(MQTT_CONFIG.host, {
+            username: MQTT_CONFIG.username,
+            password: MQTT_CONFIG.password,
+            reconnectPeriod: 2000
+        });
 
-    </svg>
+        const statusEl = document.getElementById("status");
 
-    <div class="needle" id="needle"></div>
-    <div class="center-value" id="temp">-- °C</div>
-  </div>
+        client.on("connect", () => {
+            statusEl.innerText = "🟢 Conectado";
+            client.subscribe(MQTT_CONFIG.topic);
+        });
 
-  <div class="status" id="status">Conectando...</div>
-</div>
+        client.on("reconnect", () => {
+            statusEl.innerText = "🟡 Reconectando...";
+        });
 
-<!-- GRÁFICO -->
-<div class="card">
-  <h2>📈 Linha do Tempo</h2>
-  <canvas id="grafico"></canvas>
-</div>
+        client.on("error", () => {
+            statusEl.innerText = "🔴 Erro";
+        });
 
-</div>
+        /* GRÁFICO */
+        let temperaturas = [];
+        let labels = [];
 
-<!-- teste para criar um bloco para adicionar umidade-->
-  <!-- umidade -->
-<div style="display: flex; justify-content: center; align-items: center;">
-  <div class="card">Meu Card</div>
-</div>
+        const chart = new Chart(document.getElementById("grafico"), {
+            type: "line",
+            data: {
+                labels: labels,
+                datasets: [{
+                    label: "Temperatura",
+                    data: temperaturas,
+                    borderColor: "#38bdf8",
+                    backgroundColor: "rgba(56,189,248,0.1)",
+                    borderWidth: 2,
+                    tension: 0.4,
+                    fill: true
+                }]
+            },
+            options: {
+                plugins: { legend: { labels: { color: "white" } } },
+                scales: {
+                    x: { ticks: { color: "white" } },
+                    y: { ticks: { color: "white" } }
+                }
+            }
+        });
 
-  
-<div class="card">
-  <h2> &#128167; Umidade</h2>
-  <div class="container">   <!-- Esse ponto configura uma classe para posicao do card-->
-  </div>
+        /* ATUALIZAR GAUGE */
+        function updateGauge(temp) {
+            const needle = document.getElementById("needle");
+            if (temp < -20) temp = -20;
+            if (temp > 100) temp = 100;
 
-</div>
+            let normalized = (temp + 20) / 120;
+            let angle = normalized * 180 - 90;
+            needle.style.transform = `translateX(-50%) rotate(${angle}deg)`;
 
-  
+            if (temp > 27) {
+                statusEl.innerText = "🔥 ALTA TEMPERATURA";
+                statusEl.classList.add("alert");
+            } else {
+                statusEl.classList.remove("alert");
+            }
+        }
 
-<script>
-const MQTT_CONFIG = {
-  host: "wss://28c03fa8cec54867b74cdb6592fcbc33.s1.eu.hivemq.cloud:8884/mqtt",
-  username: "AlefSilva12",
-  password: "@Alef123",
-  topic: "alefsilva/temperatura"
-};
+        /* RECEBER DADOS MQTT */
+        client.on("message", (topic, message) => {
+            const dado = parseFloat(message.toString());
+            if (isNaN(dado)) return;
 
-const client = mqtt.connect(MQTT_CONFIG.host, {
-  username: MQTT_CONFIG.username,
-  password: MQTT_CONFIG.password,
-  reconnectPeriod: 2000
-});
+            // Se for o tópico de temperatura
+            if (topic === MQTT_CONFIG.topic) {
+                document.getElementById("temp").innerText = dado.toFixed(2) + " °C";
+                updateGauge(dado);
 
-const statusEl = document.getElementById("status");
+                const now = new Date().toLocaleTimeString();
+                temperaturas.push(dado);
+                labels.push(now);
 
-/* MQTT */
-client.on("connect", () => {
-  statusEl.innerText = "🟢 Conectado";
-  client.subscribe(MQTT_CONFIG.topic);
-});
-
-client.on("reconnect", () => {
-  statusEl.innerText = "🟡 Reconectando...";
-});
-
-client.on("error", () => {
-  statusEl.innerText = "🔴 Erro";
-});
-
-/* GRÁFICO SUAVE */
-let temperaturas = [];
-let labels = [];
-
-const chart = new Chart(document.getElementById("grafico"), {
-  type: "line",
-  data: {
-    labels: labels,
-    datasets: [{
-      label: "Temperatura",
-      data: temperaturas,
-      borderColor: "#38bdf8",
-      backgroundColor: "rgba(56,189,248,0.1)",
-      borderWidth: 2,
-      tension: 0.4,
-      fill: true
-    }]
-  },
-  options: {
-    plugins: {
-      legend: { labels: { color: "white" } }
-    },
-    scales: {
-      x: { ticks: { color: "white" } },
-      y: { ticks: { color: "white" } }
-    }
-  }
-});
-
-/* GAUGE */
-function updateGauge(temp) {
-  const needle = document.getElementById("needle");
-
-  if (temp < -20) temp = -20;
-  if (temp > 100) temp = 100;
-
-  let normalized = (temp + 20) / 120;
-  let angle = normalized * 180 - 90;
-
-  needle.style.transform = `translateX(-50%) rotate(${angle}deg)`;
-
-  if (temp > 27) {
-    statusEl.innerText = "🔥 ALTA TEMPERATURA";
-    statusEl.classList.add("alert");
-  } else {
-    statusEl.classList.remove("alert");
-  }
-}
-
-/* RECEBER DADOS */
-client.on("message", (topic, message) => {
-  const temp = parseFloat(message.toString());
-  if (isNaN(temp)) return;
-
-  document.getElementById("temp").innerText = temp.toFixed(2) + " °C";
-
-  updateGauge(temp);
-
-  const now = new Date().toLocaleTimeString();
-  temperaturas.push(temp);
-  labels.push(now);
-
-  if (temperaturas.length > 30) {
-    temperaturas.shift();
-    labels.shift();
-  }
-
-  chart.update();
-});
-</script>
+                if (temperaturas.length > 20) {
+                    temperaturas.shift();
+                    labels.shift();
+                }
+                chart.update();
+            }
+        });
+    </script>
 
 </body>
 </html>
