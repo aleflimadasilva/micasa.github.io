@@ -1,137 +1,289 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-    <meta charset="UTF-8">
-    <title>Painel IoT 1.2 | Alef</title>
+<meta charset="UTF-8">
+<title>Painel IoT 2.3 | Alef</title>
 
-    <!-- IMPORTS CORRETOS -->
-    <script src="https://unpkg.com/mqtt/dist/mqtt.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<!-- IMPORTS -->
+<script src="https://unpkg.com/mqtt/dist/mqtt.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
-    <style> /*CSS para estilzar os botoes, letras do titulo e estado*/
-        body { margin: 0; font-family: Arial, sans-serif; background: #0a0000; color: white; }
-        .container { display: flex; flex-wrap: wrap; justify-content: center; gap: 20px; padding: 20px; }
+<style>
+/* =======================
+   ESTILO GERAL DA PÁGINA
+======================= */
+body {
+    margin: 0;
+    font-family: Arial, sans-serif;
+    background: #0a0000; /* fundo escuro */
+    color: white;
+}
 
-        .card { 
-            background: #111827; border-radius: 12px; padding: 20px; width: 320px; 
-            text-align: center; box-shadow: 0 0 15px rgba(0,0,0,0.6); 
-            display: flex; flex-direction: column; justify-content: space-between;
-        }
-        
-/*ABIXO SAO PARAMETRIZADOS OS BOTOES DOS RELES DE CONTROLE DAS LAMPADAS*/
-        .control-group { display: flex; gap: 10px; justify-content: center; margin-top: 15px; }
+/* =======================
+   HOME ESTILO APP (TELA PRINCIPAL)
+======================= */
+.home {
+    display: flex;            /* flexbox para alinhar cards */
+    flex-wrap: wrap;          /* quebra para múltiplas linhas */
+    gap: 20px;                /* espaço entre os cards */
+    justify-content: center;  /* centraliza horizontalmente */
+    padding: 20px;
+}
 
-        .btn-on { background: #22c55e; border: none; padding: 10px; border-radius: 8px; cursor: pointer; font-weight: bold; flex: 1; }
-        .btn-off { background: #ef4444; border: none; padding: 10px; border-radius: 8px; cursor: pointer; font-weight: bold; flex: 1; }
+.app-card {
+    width: 140px;
+    height: 140px;
+    background: #111827;
+    border-radius: 20px;
+    display: flex;
+    flex-direction: column;   /* ícone acima do texto */
+    justify-content: center;  /* centraliza verticalmente */
+    align-items: center;      /* centraliza horizontalmente */
+    cursor: pointer;
+    transition: transform 0.2s;
+}
 
-        .lamp-status { font-size: 18px; font-weight: bold; margin: 15px 0; padding: 5px; border-radius: 5px; }
-        .status-on { color: #22c55e; text-shadow: 0 0 10px #22c55e; }
-        .status-off { color: #94a3b8; }
+.app-card:hover {
+    transform: scale(1.05);
+}
 
-        .gauge { position: relative; width: 200px; height: 120px; margin: auto; }
+.app-card span {
+    margin-top: 10px;
+}
 
-        .needle {
-            width: 3px;
-            height: 70px;
-            background: #fff;
-            position: absolute;
-            bottom: 15px;
-            left: 50%;
-            transform-origin: center bottom;
-            transform: translateX(-50%) rotate(-90deg);
-            transition: transform 0.6s ease-in-out;
-        }
+/* =======================
+   TELAS INTERNAS
+======================= */
+.tela {
+    display: none; /* por padrão escondido */
+    padding: 20px;
+}
 
-        canvas { max-height: 150px; }
-    </style>
+.tela.active {
+    display: block; /* tela ativa visível */
+}
+
+/* BOTÃO VOLTAR */
+.voltar {
+    margin-bottom: 10px;
+    cursor: pointer;
+    color: #38bdf8;
+}
+
+/* =======================
+   CONTAINER DE CARDS
+======================= */
+.container {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 20px;
+    justify-content: center;
+}
+
+/* =======================
+   CARD INDIVIDUAL
+======================= */
+.card {
+    background: #111827;
+    padding: 20px;
+    border-radius: 12px;
+    width: 320px;                 /* largura fixa */
+    
+    /* CENTRALIZAÇÃO TOTAL DO CONTEÚDO */
+    display: flex;               
+    flex-direction: column;       /* empilha verticalmente */
+    align-items: center;          /* centraliza horizontalmente */
+}
+
+/* BOTÕES LIGAR/DESLIGAR */
+.control-group {
+    display: flex;
+    gap: 10px;
+    margin-top: 10px;
+}
+
+.btn-on {
+    background: #22c55e;
+    border: none;
+    padding: 10px;
+    border-radius: 8px;
+    cursor: pointer;
+    flex: 1;
+}
+
+.btn-off {
+    background: #ef4444;
+    border: none;
+    padding: 10px;
+    border-radius: 8px;
+    cursor: pointer;
+    flex: 1;
+}
+
+/* STATUS DE LÂMPADAS */
+.lamp-status {
+    margin: 10px;
+    font-weight: bold;
+}
+
+.status-on { color: #22c55e; }
+.status-off { color: #94a3b8; }
+
+/* GAUGE TEMPERATURA */
+.gauge {
+    position: relative;
+    width: 200px;
+    height: 120px;
+    margin: 20px auto 0 auto; /* centralizado e com margem superior */
+}
+
+.needle {
+    width: 3px;
+    height: 70px;
+    background: #fff;
+    position: absolute;
+    bottom: 15px;
+    left: 50%;
+    transform-origin: center bottom;
+    transform: translateX(-50%) rotate(-90deg);
+    transition: transform 0.6s ease-in-out;
+}
+
+/* STATUS MQTT INLINE */
+.status-inline {
+    font-weight: bold;
+    font-size: 16px;
+}
+
+/* GRÁFICO */
+canvas { max-height: 150px; }
+
+</style>
 </head>
 
-<body> <!-- aqui comeca o conteiner onde os cards sao agrupados e se ajustam automaticamente-->
+<body>
 
-<div class="container">
+<!-- =======================
+   TELA PRINCIPAL (HOME)
+======================= -->
+<div id="home" class="tela active">
+    <h2 style="text-align:center;">🏠 Painel IoT</h2>
 
-    <!-- TEMPERATURA -->
-    <div class="card">
-        <h2>🌡️ Temperatura</h2>
-
-        <div class="gauge"> 
-        <!-- abixo sao as configuracoes da escala gauge-->
-            <svg viewBox="0 0 200 120">
-                <path d="M 20 100 A 80 80 0 0 1 180 100" stroke="#1f2937" stroke-width="12" fill="none"/>
-                
-                <!--verde-->
-                <path d="M 20 100 A 80 80 0 0 1 100 20" stroke="#22c55e" stroke-width="12" fill="none"/>
-                
-                 <!--amarelo-->
-                <path d="M 100 20 A 80 80 0 0 1 180 100" stroke="#FFFF00" stroke-width="12" fill="none"/>
-               
-               <!-- vermelho -->
-                <path d="M 169 60 A 80 80 0 0 1 180 100" stroke="#ef4444" stroke-width="12" fill="none"/>
-                
-            </svg>
-
-            <div class="needle" id="needle"></div>
-            <div id="temp" style="font-size: 28px; font-weight: bold;">-- °C</div>
-        </div>
-
-        <div id="status-mqtt">Conectando...</div>
+    <div class="home">
+        <!-- Cada card representa uma "categoria" ou cômodo -->
+        <div class="app-card" onclick="abrirTela('geral')">🌡️<span>Geral</span></div>
+        <div class="app-card" onclick="abrirTela('sala')">🛋️<span>Sala</span></div>
+        <div class="app-card" onclick="abrirTela('quarto')">🛏️<span>Quarto</span></div>
+        <div class="app-card" onclick="abrirTela('banheiro')">🚿<span>Banheiro</span></div>
     </div>
+</div>
 
-    <!-- GRÁFICO -->
-    <div class="card">
-        <h2>📈 Histórico</h2>
-        <canvas id="grafico"></canvas>
-
-        <button onclick="baixarHistorico()" style="margin-top:10px; background:#38bdf8; border:none; padding:8px; border-radius:5px; font-weight:bold; cursor:pointer;">
-            📥 Baixar historico CSV
-        </button>
-    </div>
-
-    <!-- SALA -->
-    <div class="card">
-        <h2>🛋️ Lâmpada Sala</h2>
-        <div id="status-sala" class="lamp-status status-off">DESLIGADA</div>
-
-        <div class="control-group">
-            <button class="btn-on" onclick="enviarComando('sala','ON')">LIGAR</button>
-            <button class="btn-off" onclick="enviarComando('sala','OFF')">DESLIGAR</button>
-        </div>
-    </div>
-
-    <!-- QUARTO -->
-    <div class="card">
-        <h2>🛏️ Lâmpada Quarto</h2>
-        <div id="status-quarto" class="lamp-status status-off">DESLIGADA</div>
-
-        <div class="control-group">
-            <button class="btn-on" onclick="enviarComando('quarto','ON')">LIGAR</button>
-            <button class="btn-off" onclick="enviarComando('quarto','OFF')">DESLIGAR</button>
-        </div>
-    </div>
+<!-- =======================
+   TELA GERAL
+======================= -->
+<div id="geral" class="tela">
+    <div class="voltar" onclick="voltar()">⬅ Voltar</div>
     
-    
-        <!-- BANHEIRO -->
-    <div class="card">
-        <h2>🛏️ Lâmpada do banheiro</h2>
-        <div id="status-quarto" class="lamp-status status-off">DESLIGADA</div>
+    <div class="container">
 
-        <div class="control-group">
-            <button class="btn-on" onclick="enviarComando('quarto','ON')">LIGAR</button>
-            <button class="btn-off" onclick="enviarComando('quarto','OFF')">DESLIGAR</button>
+        <!-- CARD TEMPERATURA -->
+        <div class="card">
+            <!-- HEADER: título + status MQTT -->
+            <div style="display:flex; justify-content: space-between; align-items: center; width:100%; margin-bottom:10px;">
+                <h3 style="margin:0;">🌡️ Temperatura</h3>
+                <div id="status-mqtt" class="status-inline">Conectando...</div>
+            </div>
+
+            <!-- GAUGE CENTRALIZADO -->
+            <div class="gauge">
+                <svg viewBox="0 0 200 120">
+                    <path d="M 20 100 A 80 80 0 0 1 180 100" stroke="#1f2937" stroke-width="12" fill="none"/>
+                    <path d="M 20 100 A 80 80 0 0 1 100 20" stroke="#22c55e" stroke-width="12" fill="none"/>
+                    <path d="M 100 20 A 80 80 0 0 1 180 100" stroke="#FFFF00" stroke-width="12" fill="none"/>
+                    <path d="M 169 60 A 80 80 0 0 1 180 100" stroke="#ef4444" stroke-width="12" fill="none"/>
+                </svg>
+                <div class="needle" id="needle"></div>
+                <div id="temp" style="font-size: 22px; margin-top:10px;">-- °C</div>
+            </div>
+        </div>
+
+        <!-- CARD GRÁFICO HISTÓRICO -->
+        <div class="card">
+            <h3>📈 Histórico</h3>
+            <canvas id="grafico"></canvas>
+            <button onclick="baixarHistorico()">📥 Baixar CSV</button>
+        </div>
+
+    </div>
+</div>
+
+<!-- =======================
+   TELA SALA
+======================= -->
+<div id="sala" class="tela">
+    <div class="voltar" onclick="voltar()">⬅ Voltar</div>
+    <div class="container">
+        <div class="card">
+            <h3>🛋️ Luz Sala</h3>
+            <div id="status-sala" class="lamp-status status-off">DESLIGADA</div>
+            <div class="control-group">
+                <button class="btn-on" onclick="enviarComando('sala','ON')">LIGAR</button>
+                <button class="btn-off" onclick="enviarComando('sala','OFF')">DESLIGAR</button>
+            </div>
         </div>
     </div>
-    
-    <!-- NOVO CARDE AQUI -->
+</div>
 
-</div> <!--esse div finaliza o conteiner onde os cardes sao parametrizados para se agrupar no centro da pagina-->
+<!-- =======================
+   TELA QUARTO
+======================= -->
+<div id="quarto" class="tela">
+    <div class="voltar" onclick="voltar()">⬅ Voltar</div>
+    <div class="container">
+        <div class="card">
+            <h3>🛏️ Luz Quarto</h3>
+            <div id="status-quarto" class="lamp-status status-off">DESLIGADA</div>
+            <div class="control-group">
+                <button class="btn-on" onclick="enviarComando('quarto','ON')">LIGAR</button>
+                <button class="btn-off" onclick="enviarComando('quarto','OFF')">DESLIGAR</button>
+            </div>
+        </div>
+    </div>
+</div>
 
-
-
-
-
-
+<!-- =======================
+   TELA BANHEIRO
+======================= -->
+<div id="banheiro" class="tela">
+    <div class="voltar" onclick="voltar()">⬅ Voltar</div>
+    <div class="container">
+        <div class="card">
+            <h3>🚿 Luz Banheiro</h3>
+            <div id="status-banheiro" class="lamp-status status-off">DESLIGADA</div>
+            <div class="control-group">
+                <button class="btn-on" onclick="enviarComando('banheiro','ON')">LIGAR</button>
+                <button class="btn-off" onclick="enviarComando('banheiro','OFF')">DESLIGAR</button>
+            </div>
+        </div>
+    </div>
+</div>
 
 <script>
+/* =======================
+   NAVEGAÇÃO ENTRE TELAS
+======================= */
+function abrirTela(id) {
+    document.querySelectorAll('.tela').forEach(t => t.classList.remove('active'));
+    document.getElementById(id).classList.add('active');
+}
+
+function voltar() {
+    abrirTela('home');
+}
+
+/* =======================
+   MQTT CONFIGURAÇÃO
+======================= */
 const CONFIG = {
     host: "wss://28c03fa8cec54867b74cdb6592fcbc33.s1.eu.hivemq.cloud:8884/mqtt",
     user: "AlefSilva12",
@@ -141,7 +293,9 @@ const CONFIG = {
         sala_cmd: "alefsilva/sala/comando",
         sala_stat: "alefsilva/sala/status",
         quarto_cmd: "alefsilva/quarto/comando",
-        quarto_stat: "alefsilva/quarto/status"
+        quarto_stat: "alefsilva/quarto/status",
+        banheiro_cmd: "alefsilva/banheiro/comando",
+        banheiro_stat: "alefsilva/banheiro/status"
     }
 };
 
@@ -152,12 +306,16 @@ const client = mqtt.connect(CONFIG.host, {
 
 let logsParaCSV = [];
 
+/* =======================
+   MQTT EVENTOS
+======================= */
 client.on("connect", () => {
     document.getElementById("status-mqtt").innerText = "🟢 Online";
     client.subscribe([
         CONFIG.topics.temp,
         CONFIG.topics.sala_stat,
-        CONFIG.topics.quarto_stat
+        CONFIG.topics.quarto_stat,
+        CONFIG.topics.banheiro_stat
     ]);
 });
 
@@ -169,72 +327,65 @@ client.on("offline", () => {
     document.getElementById("status-mqtt").innerText = "🔴 Offline";
 });
 
-function enviarComando(dispositivo, acao) {
-    const topico = dispositivo === 'sala'
-        ? CONFIG.topics.sala_cmd
-        : CONFIG.topics.quarto_cmd;
+/* =======================
+   RECEBIMENTO DE MENSAGENS MQTT
+======================= */
+client.on("message", (topic, message) => {
+    const msg = message.toString();
+    if (topic === CONFIG.topics.temp) processarTemperatura(parseFloat(msg));
+    if (topic === CONFIG.topics.sala_stat) atualizarLampada('sala', msg);
+    if (topic === CONFIG.topics.quarto_stat) atualizarLampada('quarto', msg);
+    if (topic === CONFIG.topics.banheiro_stat) atualizarLampada('banheiro', msg);
+});
 
+/* =======================
+   ENVIO DE COMANDOS MQTT
+======================= */
+function enviarComando(dispositivo, acao) {
+    const topico = CONFIG.topics[dispositivo + "_cmd"];
     client.publish(topico, acao);
 }
 
-client.on("message", (topic, message) => {
-    const msg = message.toString();
-
-    if (topic === CONFIG.topics.temp) {
-        processarTemperatura(parseFloat(msg));
-    } else if (topic === CONFIG.topics.sala_stat) {
-        atualizarLampada('sala', msg);
-    } else if (topic === CONFIG.topics.quarto_stat) {
-        atualizarLampada('quarto', msg);
-    }
-});
-
+/* =======================
+   FUNÇÃO PARA ATUALIZAR STATUS LAMPADAS
+======================= */
 function atualizarLampada(local, estado) {
     const el = document.getElementById(`status-${local}`);
-
-    if (estado === "ON") {
-        el.innerText = "LIGADA";
-        el.className = "lamp-status status-on";
-    } else {
-        el.innerText = "DESLIGADA";
-        el.className = "lamp-status status-off";
-    }
+    if (!el) return;
+    el.innerText = (estado === "ON") ? "LIGADA" : "DESLIGADA";
+    el.className = "lamp-status " + (estado === "ON" ? "status-on" : "status-off");
 }
 
+/* =======================
+   GRÁFICO CHART.JS
+======================= */
 const chart = new Chart(document.getElementById('grafico'), {
     type: 'line',
     data: {
         labels: [],
         datasets: [{
-            label: 'Temperatura',
             data: [],
-            borderColor: '#38bdf8',
-            tension: 0
+            borderColor: '#38bdf8'
         }]
     },
-    options: {
-        plugins: { legend: { display: false } },
-        scales: {
-            y: { ticks: { color: '#fff' } },
-            x: { ticks: { color: '#fff' } }
-        }
-    }
+    options: { plugins: { legend: { display: false } } }
 });
 
+/* =======================
+   FUNÇÃO GAUGE TEMPERATURA
+======================= */
 function processarTemperatura(valor) {
     if (isNaN(valor)) return;
-
-    // Limite
     valor = Math.max(-20, Math.min(100, valor));
 
     document.getElementById("temp").innerText = valor.toFixed(1) + " °C";
 
+    // Atualiza agulha do gauge
     let angulo = ((valor + 20) / 120) * 180 - 90;
-    document.getElementById("needle").style.transform =
-        `translateX(-50%) rotate(${angulo}deg)`;
+    const needle = document.getElementById("needle");
+    if (needle) needle.style.transform = `translateX(-50%) rotate(${angulo}deg)`;
 
     const hora = new Date().toLocaleTimeString();
-
     chart.data.labels.push(hora);
     chart.data.datasets[0].data.push(valor);
 
@@ -242,9 +393,9 @@ function processarTemperatura(valor) {
         chart.data.labels.shift();
         chart.data.datasets[0].data.shift();
     }
-
     chart.update();
 
+    // Armazena logs para CSV
     logsParaCSV.push({
         data: new Date().toLocaleDateString(),
         hora,
@@ -252,6 +403,9 @@ function processarTemperatura(valor) {
     });
 }
 
+/* =======================
+   EXPORTAR CSV
+======================= */
 function baixarHistorico() {
     let conteudo = "Data,Hora,Temperatura\n" +
         logsParaCSV.map(l => `${l.data},${l.hora},${l.valor}`).join("\n");
