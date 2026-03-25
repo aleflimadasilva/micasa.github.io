@@ -8,7 +8,7 @@
     <script src="https://unpkg.com/mqtt/dist/mqtt.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
-    <style>
+    <style> /*CSS para estilzar os botoes, letras do titulo e estado*/
         body { margin: 0; font-family: Arial, sans-serif; background: #0a0000; color: white; }
         .container { display: flex; flex-wrap: wrap; justify-content: center; gap: 20px; padding: 20px; }
 
@@ -17,7 +17,8 @@
             text-align: center; box-shadow: 0 0 15px rgba(0,0,0,0.6); 
             display: flex; flex-direction: column; justify-content: space-between;
         }
-
+        
+/*ABIXO SAO PARAMETRIZADOS OS BOTOES DOS RELES DE CONTROLE DAS LAMPADAS*/
         .control-group { display: flex; gap: 10px; justify-content: center; margin-top: 15px; }
 
         .btn-on { background: #22c55e; border: none; padding: 10px; border-radius: 8px; cursor: pointer; font-weight: bold; flex: 1; }
@@ -45,7 +46,7 @@
     </style>
 </head>
 
-<body>
+<body> <!-- aqui comeca o conteiner onde os cards sao agrupados e se ajustam automaticamente-->
 
 <div class="container">
 
@@ -53,11 +54,20 @@
     <div class="card">
         <h2>🌡️ Temperatura</h2>
 
-        <div class="gauge">
+        <div class="gauge"> 
+        <!-- abixo sao as configuracoes da escala gauge-->
             <svg viewBox="0 0 200 120">
                 <path d="M 20 100 A 80 80 0 0 1 180 100" stroke="#1f2937" stroke-width="12" fill="none"/>
+                
+                <!--verde-->
                 <path d="M 20 100 A 80 80 0 0 1 100 20" stroke="#22c55e" stroke-width="12" fill="none"/>
-                <path d="M 100 20 A 80 80 0 0 1 180 100" stroke="#ef4444" stroke-width="12" fill="none"/>
+                
+                 <!--amarelo-->
+                <path d="M 100 20 A 80 80 0 0 1 180 100" stroke="#FFFF00" stroke-width="12" fill="none"/>
+               
+               <!-- vermelho -->
+                <path d="M 169 60 A 80 80 0 0 1 180 100" stroke="#ef4444" stroke-width="12" fill="none"/>
+                
             </svg>
 
             <div class="needle" id="needle"></div>
@@ -73,7 +83,7 @@
         <canvas id="grafico"></canvas>
 
         <button onclick="baixarHistorico()" style="margin-top:10px; background:#38bdf8; border:none; padding:8px; border-radius:5px; font-weight:bold; cursor:pointer;">
-            📥 Baixar CSV
+            📥 Baixar historico CSV
         </button>
     </div>
 
@@ -98,8 +108,28 @@
             <button class="btn-off" onclick="enviarComando('quarto','OFF')">DESLIGAR</button>
         </div>
     </div>
+    
+    
+        <!-- BANHEIRO -->
+    <div class="card">
+        <h2>🛏️ Lâmpada do banheiro</h2>
+        <div id="status-quarto" class="lamp-status status-off">DESLIGADA</div>
 
-</div>
+        <div class="control-group">
+            <button class="btn-on" onclick="enviarComando('quarto','ON')">LIGAR</button>
+            <button class="btn-off" onclick="enviarComando('quarto','OFF')">DESLIGAR</button>
+        </div>
+    </div>
+    
+    <!-- NOVO CARDE AQUI -->
+
+</div> <!--esse div finaliza o conteiner onde os cardes sao parametrizados para se agrupar no centro da pagina-->
+
+
+
+
+
+
 
 <script>
 const CONFIG = {
