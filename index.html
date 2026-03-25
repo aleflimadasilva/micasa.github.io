@@ -2,15 +2,17 @@
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8">
-<title>Painel IoT 2.3 | Alef</title>
+<title>Painel IoT 3.7 | Alef</title>
 
-<!-- IMPORTS -->
+<!-- =======================
+   IMPORTS
+======================= -->
 <script src="https://unpkg.com/mqtt/dist/mqtt.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
 <style>
 /* =======================
-   ESTILO GERAL DA PÁGINA
+   ESTILO GERAL
 ======================= */
 body {
     margin: 0;
@@ -20,13 +22,13 @@ body {
 }
 
 /* =======================
-   HOME ESTILO APP (TELA PRINCIPAL)
+   HOME ESTILO APP
 ======================= */
 .home {
-    display: flex;            /* flexbox para alinhar cards */
-    flex-wrap: wrap;          /* quebra para múltiplas linhas */
-    gap: 20px;                /* espaço entre os cards */
-    justify-content: center;  /* centraliza horizontalmente */
+    display: flex;
+    flex-wrap: wrap;
+    gap: 20px;
+    justify-content: center;
     padding: 20px;
 }
 
@@ -36,9 +38,9 @@ body {
     background: #111827;
     border-radius: 20px;
     display: flex;
-    flex-direction: column;   /* ícone acima do texto */
-    justify-content: center;  /* centraliza verticalmente */
-    align-items: center;      /* centraliza horizontalmente */
+    flex-direction: column; /* ícone acima do texto */
+    justify-content: center;
+    align-items: center;
     cursor: pointer;
     transition: transform 0.2s;
 }
@@ -55,15 +57,14 @@ body {
    TELAS INTERNAS
 ======================= */
 .tela {
-    display: none; /* por padrão escondido */
+    display: none;
     padding: 20px;
 }
 
 .tela.active {
-    display: block; /* tela ativa visível */
+    display: block;
 }
 
-/* BOTÃO VOLTAR */
 .voltar {
     margin-bottom: 10px;
     cursor: pointer;
@@ -87,12 +88,10 @@ body {
     background: #111827;
     padding: 20px;
     border-radius: 12px;
-    width: 320px;                 /* largura fixa */
-    
-    /* CENTRALIZAÇÃO TOTAL DO CONTEÚDO */
-    display: flex;               
-    flex-direction: column;       /* empilha verticalmente */
-    align-items: center;          /* centraliza horizontalmente */
+    width: 320px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;      /* centraliza horizontalmente */
 }
 
 /* BOTÕES LIGAR/DESLIGAR */
@@ -129,14 +128,26 @@ body {
 .status-on { color: #22c55e; }
 .status-off { color: #94a3b8; }
 
-/* GAUGE TEMPERATURA */
+/* =======================
+   GAUGE TEMPERATURA CENTRALIZADO
+======================= */
 .gauge {
-    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
     width: 200px;
-    height: 120px;
-    margin: 20px auto 0 auto; /* centralizado e com margem superior */
+    margin: 20px auto 0 auto;
 }
 
+/* DIV QUE SEGURA SVG + AGULHA */
+.gauge-visual {
+    position: relative;
+    width: 200px;
+    height: 120px; /* altura do arco */
+}
+
+/* AGULHA */
 .needle {
     width: 3px;
     height: 70px;
@@ -147,6 +158,13 @@ body {
     transform-origin: center bottom;
     transform: translateX(-50%) rotate(-90deg);
     transition: transform 0.6s ease-in-out;
+}
+
+/* VALOR TEMPERATURA ABAIXO DO GAUGE */
+#gauge-temp {
+    margin-top: 10px;
+    font-size: 22px;
+    font-weight: bold;
 }
 
 /* STATUS MQTT INLINE */
@@ -164,13 +182,11 @@ canvas { max-height: 150px; }
 <body>
 
 <!-- =======================
-   TELA PRINCIPAL (HOME)
+   HOME PRINCIPAL
 ======================= -->
 <div id="home" class="tela active">
     <h2 style="text-align:center;">🏠 Painel IoT</h2>
-
     <div class="home">
-        <!-- Cada card representa uma "categoria" ou cômodo -->
         <div class="app-card" onclick="abrirTela('geral')">🌡️<span>Geral</span></div>
         <div class="app-card" onclick="abrirTela('sala')">🛋️<span>Sala</span></div>
         <div class="app-card" onclick="abrirTela('quarto')">🛏️<span>Quarto</span></div>
@@ -183,27 +199,29 @@ canvas { max-height: 150px; }
 ======================= -->
 <div id="geral" class="tela">
     <div class="voltar" onclick="voltar()">⬅ Voltar</div>
-    
     <div class="container">
 
-        <!-- CARD TEMPERATURA -->
+        <!-- CARD GAUGE TEMPERATURA -->
         <div class="card">
-            <!-- HEADER: título + status MQTT -->
             <div style="display:flex; justify-content: space-between; align-items: center; width:100%; margin-bottom:10px;">
                 <h3 style="margin:0;">🌡️ Temperatura</h3>
                 <div id="status-mqtt" class="status-inline">Conectando...</div>
             </div>
 
-            <!-- GAUGE CENTRALIZADO -->
             <div class="gauge">
-                <svg viewBox="0 0 200 120">
-                    <path d="M 20 100 A 80 80 0 0 1 180 100" stroke="#1f2937" stroke-width="12" fill="none"/>
-                    <path d="M 20 100 A 80 80 0 0 1 100 20" stroke="#22c55e" stroke-width="12" fill="none"/>
-                    <path d="M 100 20 A 80 80 0 0 1 180 100" stroke="#FFFF00" stroke-width="12" fill="none"/>
-                    <path d="M 169 60 A 80 80 0 0 1 180 100" stroke="#ef4444" stroke-width="12" fill="none"/>
-                </svg>
-                <div class="needle" id="needle"></div>
-                <div id="temp" style="font-size: 22px; margin-top:10px;">-- °C</div>
+                <!-- GAUGE VISUAL (SVG + AGULHA) -->
+                <div class="gauge-visual">
+                    <svg viewBox="0 0 200 120">
+                        <path d="M 20 100 A 80 80 0 0 1 180 100" stroke="#1f2937" stroke-width="12" fill="none"/>
+                        <path d="M 20 100 A 80 80 0 0 1 100 20" stroke="#22c55e" stroke-width="12" fill="none"/>
+                        <path d="M 100 20 A 80 80 0 0 1 180 100" stroke="#FFFF00" stroke-width="12" fill="none"/>
+                        <path d="M 169 60 A 80 80 0 0 1 180 100" stroke="#ef4444" stroke-width="12" fill="none"/>
+                    </svg>
+                    <div class="needle" id="needle"></div>
+                </div>
+
+                <!-- VALOR TEMPERATURA (ABAIXO DO GAUGE) -->
+                <div id="gauge-temp">-- °C</div>
             </div>
         </div>
 
@@ -213,7 +231,6 @@ canvas { max-height: 150px; }
             <canvas id="grafico"></canvas>
             <button onclick="baixarHistorico()">📥 Baixar CSV</button>
         </div>
-
     </div>
 </div>
 
@@ -276,13 +293,10 @@ function abrirTela(id) {
     document.querySelectorAll('.tela').forEach(t => t.classList.remove('active'));
     document.getElementById(id).classList.add('active');
 }
-
-function voltar() {
-    abrirTela('home');
-}
+function voltar() { abrirTela('home'); }
 
 /* =======================
-   MQTT CONFIGURAÇÃO
+   MQTT CONFIG
 ======================= */
 const CONFIG = {
     host: "wss://28c03fa8cec54867b74cdb6592fcbc33.s1.eu.hivemq.cloud:8884/mqtt",
@@ -298,12 +312,10 @@ const CONFIG = {
         banheiro_stat: "alefsilva/banheiro/status"
     }
 };
-
 const client = mqtt.connect(CONFIG.host, {
     username: CONFIG.user,
     password: CONFIG.pass
 });
-
 let logsParaCSV = [];
 
 /* =======================
@@ -318,17 +330,11 @@ client.on("connect", () => {
         CONFIG.topics.banheiro_stat
     ]);
 });
-
-client.on("reconnect", () => {
-    document.getElementById("status-mqtt").innerText = "🟡 Reconectando...";
-});
-
-client.on("offline", () => {
-    document.getElementById("status-mqtt").innerText = "🔴 Offline";
-});
+client.on("reconnect", () => { document.getElementById("status-mqtt").innerText = "🟡 Reconectando..."; });
+client.on("offline", () => { document.getElementById("status-mqtt").innerText = "🔴 Offline"; });
 
 /* =======================
-   RECEBIMENTO DE MENSAGENS MQTT
+   RECEBIMENTO DE MENSAGENS
 ======================= */
 client.on("message", (topic, message) => {
     const msg = message.toString();
@@ -339,7 +345,7 @@ client.on("message", (topic, message) => {
 });
 
 /* =======================
-   ENVIO DE COMANDOS MQTT
+   ENVIO DE COMANDOS
 ======================= */
 function enviarComando(dispositivo, acao) {
     const topico = CONFIG.topics[dispositivo + "_cmd"];
@@ -347,7 +353,7 @@ function enviarComando(dispositivo, acao) {
 }
 
 /* =======================
-   FUNÇÃO PARA ATUALIZAR STATUS LAMPADAS
+   FUNÇÃO ATUALIZAR LAMPADAS
 ======================= */
 function atualizarLampada(local, estado) {
     const el = document.getElementById(`status-${local}`);
@@ -361,13 +367,7 @@ function atualizarLampada(local, estado) {
 ======================= */
 const chart = new Chart(document.getElementById('grafico'), {
     type: 'line',
-    data: {
-        labels: [],
-        datasets: [{
-            data: [],
-            borderColor: '#38bdf8'
-        }]
-    },
+    data: { labels: [], datasets: [{ data: [], borderColor: '#38bdf8' }] },
     options: { plugins: { legend: { display: false } } }
 });
 
@@ -378,12 +378,10 @@ function processarTemperatura(valor) {
     if (isNaN(valor)) return;
     valor = Math.max(-20, Math.min(100, valor));
 
-    document.getElementById("temp").innerText = valor.toFixed(1) + " °C";
+    document.getElementById("gauge-temp").innerText = valor.toFixed(1) + " °C";
 
-    // Atualiza agulha do gauge
     let angulo = ((valor + 20) / 120) * 180 - 90;
-    const needle = document.getElementById("needle");
-    if (needle) needle.style.transform = `translateX(-50%) rotate(${angulo}deg)`;
+    document.getElementById("needle").style.transform = `translateX(-50%) rotate(${angulo}deg)`;
 
     const hora = new Date().toLocaleTimeString();
     chart.data.labels.push(hora);
@@ -395,7 +393,6 @@ function processarTemperatura(valor) {
     }
     chart.update();
 
-    // Armazena logs para CSV
     logsParaCSV.push({
         data: new Date().toLocaleDateString(),
         hora,
@@ -409,10 +406,8 @@ function processarTemperatura(valor) {
 function baixarHistorico() {
     let conteudo = "Data,Hora,Temperatura\n" +
         logsParaCSV.map(l => `${l.data},${l.hora},${l.valor}`).join("\n");
-
     const blob = new Blob([conteudo], { type: 'text/csv' });
     const url = URL.createObjectURL(blob);
-
     const a = document.createElement('a');
     a.href = url;
     a.download = 'historico_iot.csv';
