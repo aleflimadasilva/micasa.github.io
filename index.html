@@ -1,74 +1,301 @@
 <!DOCTYPE html>
-<html>
+<html lang="pt-BR">
 <head>
 <meta charset="UTF-8">
-<title>IoT PRO</title>
+<title>Painel IoT 3.9 | Alef</title>
 
 <script src="https://unpkg.com/mqtt/dist/mqtt.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-</head>
 
-<body style="background:#000; color:#fff; text-align:center;">
-
-<h2>🌡️ Dashboard IoT</h2>
-
-<h1 id="temp">-- °C</h1>
-<h2 id="bat">--%</h2>
-
-<button onclick="ligar()">Ligar Sala</button>
-<button onclick="desligar()">Desligar Sala</button>
-
-<canvas id="grafico"></canvas>
-
-<script>
-const CONFIG = {
-    host: "wss://SEU_BROKER:8884/mqtt",
-    user: "usuario",
-    pass: "senha",
-    topics: {
-        state: "alefsilva/device01/state",
-        cmd: "alefsilva/device01/cmd"
-    }
-};
-
-const client = mqtt.connect(CONFIG.host, {
-    username: CONFIG.user,
-    password: CONFIG.pass
-});
-
-const chart = new Chart(document.getElementById("grafico"), {
-    type: "line",
-    data: { labels: [], datasets: [{ data: [] }] }
-});
-
-client.on("connect", () => {
-    client.subscribe(CONFIG.topics.state);
-});
-
-client.on("message", (topic, message) => {
-    const data = JSON.parse(message.toString());
-
-    document.getElementById("temp").innerText = data.temp + " °C";
-    document.getElementById("bat").innerText = data.bat_pct + "%";
-
-    chart.data.labels.push(new Date().toLocaleTimeString());
-    chart.data.datasets[0].data.push(data.temp);
-
-    if (chart.data.labels.length > 10) {
-        chart.data.labels.shift();
-        chart.data.datasets[0].data.shift();
-    }
-
-    chart.update();
-});
-
-/* COMANDOS */
-function ligar() {
-    client.publish(CONFIG.topics.cmd, JSON.stringify({ sala: "ON" }));
+<style>
+body {
+    margin: 0;
+    font-family: Arial, sans-serif;
+    background: #0a0000;
+    color: white;
 }
 
-function desligar() {
-    client.publish(CONFIG.topics.cmd, JSON.stringify({ sala: "OFF" }));
+/* HOME */
+.home {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 20px;
+    justify-content: center;
+    padding: 20px;
+}
+
+/* 🔥 CARDS MAIORES */
+.app-card {
+    width: 180px;
+    height: 180px;
+    background: #111827;
+    border-radius: 20px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    cursor: pointer;
+    transition: transform 0.2s;
+    font-size: 18px;
+}
+
+.app-card:hover {
+    transform: scale(1.05);
+}
+
+.app-card span {
+    margin-top: 10px;
+}
+
+/* TELAS */
+.tela {
+    display: none;
+    padding: 20px;
+}
+
+.tela.active {
+    display: block;
+}
+
+.voltar {
+    margin-bottom: 10px;
+    cursor: pointer;
+    color: #38bdf8;
+}
+
+/* CARDS */
+.container {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 20px;
+    justify-content: center;
+}
+
+.card {
+    background: #111827;
+    padding: 20px;
+    border-radius: 12px;
+    width: 320px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+/* BOTÕES */
+.control-group {
+    display: flex;
+    gap: 10px;
+    margin-top: 10px;
+}
+
+.btn-on {
+    background: #22c55e;
+    border: none;
+    padding: 10px;
+    border-radius: 8px;
+    cursor: pointer;
+    flex: 1;
+}
+
+.btn-off {
+    background: #ef4444;
+    border: none;
+    padding: 10px;
+    border-radius: 8px;
+    cursor: pointer;
+    flex: 1;
+}
+
+.lamp-status {
+    margin: 10px;
+    font-weight: bold;
+}
+
+.status-on { color: #22c55e; }
+.status-off { color: #94a3b8; }
+
+/* GAUGE (INTACTO) */
+.gauge {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    width: 200px;
+    margin: 20px auto 0 auto;
+}
+
+.gauge-visual {
+    position: relative;
+    width: 200px;
+    height: 120px;
+}
+
+.needle {
+    width: 3px;
+    height: 70px;
+    background: #fff;
+    position: absolute;
+    bottom: 15px;
+    left: 50%;
+    transform-origin: center bottom;
+    transform: translateX(-50%) rotate(-90deg);
+    transition: transform 0.6s ease-in-out;
+}
+
+#gauge-temp {
+    margin-top: 10px;
+    font-size: 22px;
+    font-weight: bold;
+}
+
+.status-inline {
+    font-weight: bold;
+    font-size: 16px;
+}
+
+canvas { max-height: 150px; }
+</style>
+</head>
+
+<body>
+
+<!-- HOME -->
+<div id="home" class="tela active">
+    <h2 style="text-align:center;">🏠 Painel IoT</h2>
+    <div class="home">
+        <div class="app-card" onclick="abrirTela('geral')">🌡️<span>Geral</span></div>
+        <div class="app-card" onclick="abrirTela('sala')">🛋️<span>Sala</span></div>
+        <div class="app-card" onclick="abrirTela('quarto')">🛏️<span>Quarto</span></div>
+        <div class="app-card" onclick="abrirTela('banheiro')">🚿<span>Banheiro</span></div>
+    </div>
+</div>
+
+<!-- GERAL -->
+<div id="geral" class="tela">
+<div class="voltar" onclick="voltar()">⬅ Voltar</div>
+
+<div class="container">
+
+<!-- TEMPERATURA -->
+<div class="card">
+<div style="display:flex; justify-content: space-between; align-items:center; width:100%; margin-bottom:10px;">
+<h3 style="margin:0;">🌡️ Temperatura</h3>
+<div id="status-mqtt" class="status-inline">Conectando...</div>
+</div>
+
+<div class="gauge">
+<div class="gauge-visual">
+<svg viewBox="0 0 200 120">
+<path d="M 20 100 A 80 80 0 0 1 180 100" stroke="#1f2937" stroke-width="12" fill="none"/>
+<path d="M 20 100 A 80 80 0 0 1 100 20" stroke="#22c55e" stroke-width="12" fill="none"/>
+<path d="M 100 20 A 80 80 0 0 1 180 100" stroke="#FFFF00" stroke-width="12" fill="none"/>
+<path d="M 169 60 A 80 80 0 0 1 180 100" stroke="#ef4444" stroke-width="12" fill="none"/>
+</svg>
+<div class="needle" id="needle"></div>
+</div>
+<div id="gauge-temp">-- °C</div>
+</div>
+</div>
+
+<!-- GRÁFICO -->
+<div class="card">
+<h3>📈 Histórico</h3>
+<canvas id="grafico"></canvas>
+<button onclick="baixarHistorico()">📥 Baixar CSV</button>
+</div>
+
+<!-- 🔋 BATERIA -->
+<div class="card">
+<h3>🔋 Bateria</h3>
+<div style="font-size:28px;"><span id="battery-percent">--%</span></div>
+<div style="color:#94a3b8;"><span id="battery-voltage">-- V</span></div>
+</div>
+
+</div>
+</div>
+
+<!-- OUTRAS TELAS (inalteradas) -->
+<div id="sala" class="tela">...</div>
+<div id="quarto" class="tela">...</div>
+<div id="banheiro" class="tela">...</div>
+
+<script>
+function abrirTela(id){
+document.querySelectorAll('.tela').forEach(t=>t.classList.remove('active'));
+document.getElementById(id).classList.add('active');
+}
+function voltar(){abrirTela('home');}
+
+const CONFIG={
+host:"wss://28c03fa8cec54867b74cdb6592fcbc33.s1.eu.hivemq.cloud:8884/mqtt",
+user:"AlefSilva12",
+pass:"@Alef123",
+topics:{
+temp:"alefsilva/temperatura",
+battery:"alefsilva/bateria"
+}
+};
+
+const client=mqtt.connect(CONFIG.host,{username:CONFIG.user,password:CONFIG.pass});
+
+client.on("connect",()=>{
+document.getElementById("status-mqtt").innerText="🟢 Online";
+client.subscribe([CONFIG.topics.temp,CONFIG.topics.battery]);
+});
+
+client.on("message",(topic,message)=>{
+const msg=message.toString();
+
+if(topic===CONFIG.topics.temp)processarTemperatura(parseFloat(msg));
+if(topic===CONFIG.topics.battery)atualizarBateria(msg);
+});
+
+/* BATERIA */
+function atualizarBateria(valor){
+const v=parseFloat(valor);
+if(isNaN(v))return;
+
+let percent=((v-3.3)/(4.2-3.3))*100;
+percent=Math.max(0,Math.min(100,percent));
+
+document.getElementById("battery-percent").innerText=percent.toFixed(0)+"%";
+document.getElementById("battery-voltage").innerText=v.toFixed(2)+" V";
+}
+
+/* TEMPERATURA ORIGINAL */
+const chart=new Chart(document.getElementById('grafico'),{
+type:'line',
+data:{labels:[],datasets:[{data:[],borderColor:'#38bdf8'}]},
+options:{plugins:{legend:{display:false}}}
+});
+
+function processarTemperatura(valor){
+if(isNaN(valor))return;
+valor=Math.max(-20,Math.min(100,valor));
+
+document.getElementById("gauge-temp").innerText=valor.toFixed(1)+" °C";
+
+let angulo=((valor+20)/120)*180-90;
+document.getElementById("needle").style.transform=`translateX(-50%) rotate(${angulo}deg)`;
+
+const hora=new Date().toLocaleTimeString();
+chart.data.labels.push(hora);
+chart.data.datasets[0].data.push(valor);
+
+if(chart.data.labels.length>10){
+chart.data.labels.shift();
+chart.data.datasets[0].data.shift();
+}
+chart.update();
+}
+
+function baixarHistorico(){
+let c="Data,Hora,Temp\n"+chart.data.labels.map((l,i)=>`${l},${chart.data.datasets[0].data[i]}`).join("\n");
+let blob=new Blob([c]);
+let a=document.createElement('a');
+a.href=URL.createObjectURL(blob);
+a.download="historico.csv";
+a.click();
 }
 </script>
 
