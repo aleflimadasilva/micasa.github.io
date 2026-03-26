@@ -24,22 +24,23 @@ body {
 .home {
     display: flex;
     flex-wrap: wrap;
-    gap: 20px;
+    gap: 25px;
     justify-content: center;
     padding: 20px;
 }
 
 .app-card {
-    width: 140px;
-    height: 140px;
+    width: 180px;  /* Aumentado de 140px */
+    height: 180px; /* Aumentado de 140px */
     background: #111827;
-    border-radius: 20px;
+    border-radius: 25px;
     display: flex;
-    flex-direction: column; /* ícone acima do texto */
+    flex-direction: column; 
     justify-content: center;
     align-items: center;
     cursor: pointer;
     transition: transform 0.2s;
+    font-size: 1.2rem; /* Aumenta o texto */
 }
 
 .app-card:hover {
@@ -47,7 +48,16 @@ body {
 }
 
 .app-card span {
-    margin-top: 10px;
+    margin-top: 15px;
+}
+
+/* Ícone dentro do card */
+.app-card {
+    font-size: 40px; /* Aumenta o emoji */
+}
+
+.app-card span {
+    font-size: 18px; /* Ajusta o texto abaixo do emoji */
 }
 
 /* =======================
@@ -62,7 +72,6 @@ body {
     display: block;
 }
 
-/* MODIFICAÇÃO: Moldura no botão voltar */
 .voltar {
     margin-bottom: 20px;
     cursor: pointer;
@@ -98,7 +107,7 @@ body {
     width: 320px;
     display: flex;
     flex-direction: column;
-    align-items: center;      /* centraliza horizontalmente */
+    align-items: center;      
 }
 
 /* BOTÕES LIGAR/DESLIGAR */
@@ -147,14 +156,12 @@ body {
     margin: 20px auto 0 auto;
 }
 
-/* DIV QUE SEGURA SVG + AGULHA */
 .gauge-visual {
     position: relative;
     width: 200px;
-    height: 120px; /* altura do arco */
+    height: 120px; 
 }
 
-/* AGULHA */
 .needle {
     width: 3px;
     height: 70px;
@@ -167,20 +174,17 @@ body {
     transition: transform 0.6s ease-in-out;
 }
 
-/* VALOR TEMPERATURA ABAIXO DO GAUGE */
 #gauge-temp {
     margin-top: 10px;
     font-size: 22px;
     font-weight: bold;
 }
 
-/* STATUS MQTT INLINE */
 .status-inline {
     font-weight: bold;
     font-size: 16px;
 }
 
-/* GRÁFICO */
 canvas { max-height: 150px; }
 
 </style>
@@ -189,7 +193,7 @@ canvas { max-height: 150px; }
 <body>
 
 <div id="home" class="tela active">
-    <h2 style="text-align:center;">🏠 Painel IoT</h2>
+    <h2 style="text-align:center; margin-bottom: 30px;">🏠 Painel IoT</h2>
     <div class="home">
         <div class="app-card" onclick="abrirTela('geral')">🌡️<span>Geral</span></div>
         <div class="app-card" onclick="abrirTela('sala')">🛋️<span>Sala</span></div>
@@ -201,13 +205,11 @@ canvas { max-height: 150px; }
 <div id="geral" class="tela">
     <div class="voltar" onclick="voltar()">⬅ Voltar</div>
     <div class="container">
-
         <div class="card">
             <div style="display:flex; justify-content: space-between; align-items: center; width:100%; margin-bottom:10px;">
                 <h3 style="margin:0;">🌡️ Temperatura</h3>
                 <div id="status-mqtt" class="status-inline">Conectando...</div>
             </div>
-
             <div class="gauge">
                 <div class="gauge-visual">
                     <svg viewBox="0 0 200 120">
@@ -218,11 +220,9 @@ canvas { max-height: 150px; }
                     </svg>
                     <div class="needle" id="needle"></div>
                 </div>
-
                 <div id="gauge-temp">-- °C</div>
             </div>
         </div>
-
         <div class="card">
             <h3>📈 Histórico</h3>
             <canvas id="grafico"></canvas>
@@ -274,18 +274,12 @@ canvas { max-height: 150px; }
 </div>
 
 <script>
-/* =======================
-   NAVEGAÇÃO ENTRE TELAS
-======================= */
 function abrirTela(id) {
     document.querySelectorAll('.tela').forEach(t => t.classList.remove('active'));
     document.getElementById(id).classList.add('active');
 }
 function voltar() { abrirTela('home'); }
 
-/* =======================
-   MQTT CONFIG
-======================= */
 const CONFIG = {
     host: "wss://28c03fa8cec54867b74cdb6592fcbc33.s1.eu.hivemq.cloud:8884/mqtt",
     user: "AlefSilva12",
@@ -300,30 +294,15 @@ const CONFIG = {
         banheiro_stat: "alefsilva/banheiro/status"
     }
 };
-const client = mqtt.connect(CONFIG.host, {
-    username: CONFIG.user,
-    password: CONFIG.pass
-});
+
+const client = mqtt.connect(CONFIG.host, { username: CONFIG.user, password: CONFIG.pass });
 let logsParaCSV = [];
 
-/* =======================
-   MQTT EVENTOS
-======================= */
 client.on("connect", () => {
     document.getElementById("status-mqtt").innerText = "🟢 Online";
-    client.subscribe([
-        CONFIG.topics.temp,
-        CONFIG.topics.sala_stat,
-        CONFIG.topics.quarto_stat,
-        CONFIG.topics.banheiro_stat
-    ]);
+    client.subscribe([CONFIG.topics.temp, CONFIG.topics.sala_stat, CONFIG.topics.quarto_stat, CONFIG.topics.banheiro_stat]);
 });
-client.on("reconnect", () => { document.getElementById("status-mqtt").innerText = "🟡 Reconectando..."; });
-client.on("offline", () => { document.getElementById("status-mqtt").innerText = "🔴 Offline"; });
 
-/* =======================
-   RECEBIMENTO DE MENSAGENS
-======================= */
 client.on("message", (topic, message) => {
     const msg = message.toString();
     if (topic === CONFIG.topics.temp) processarTemperatura(parseFloat(msg));
@@ -332,17 +311,10 @@ client.on("message", (topic, message) => {
     if (topic === CONFIG.topics.banheiro_stat) atualizarLampada('banheiro', msg);
 });
 
-/* =======================
-   ENVIO DE COMANDOS
-======================= */
 function enviarComando(dispositivo, acao) {
-    const topico = CONFIG.topics[dispositivo + "_cmd"];
-    client.publish(topico, acao);
+    client.publish(CONFIG.topics[dispositivo + "_cmd"], acao);
 }
 
-/* =======================
-   FUNÇÃO ATUALIZAR LAMPADAS
-======================= */
 function atualizarLampada(local, estado) {
     const el = document.getElementById(`status-${local}`);
     if (!el) return;
@@ -350,50 +322,31 @@ function atualizarLampada(local, estado) {
     el.className = "lamp-status " + (estado === "ON" ? "status-on" : "status-off");
 }
 
-/* =======================
-   GRÁFICO CHART.JS
-======================= */
 const chart = new Chart(document.getElementById('grafico'), {
     type: 'line',
     data: { labels: [], datasets: [{ data: [], borderColor: '#38bdf8' }] },
     options: { plugins: { legend: { display: false } } }
 });
 
-/* =======================
-   FUNÇÃO GAUGE TEMPERATURA
-======================= */
 function processarTemperatura(valor) {
     if (isNaN(valor)) return;
     valor = Math.max(-20, Math.min(100, valor));
-
     document.getElementById("gauge-temp").innerText = valor.toFixed(1) + " °C";
-
     let angulo = ((valor + 20) / 120) * 180 - 90;
     document.getElementById("needle").style.transform = `translateX(-50%) rotate(${angulo}deg)`;
-
     const hora = new Date().toLocaleTimeString();
     chart.data.labels.push(hora);
     chart.data.datasets[0].data.push(valor);
-
     if (chart.data.labels.length > 10) {
         chart.data.labels.shift();
         chart.data.datasets[0].data.shift();
     }
     chart.update();
-
-    logsParaCSV.push({
-        data: new Date().toLocaleDateString(),
-        hora,
-        valor
-    });
+    logsParaCSV.push({ data: new Date().toLocaleDateString(), hora, valor });
 }
 
-/* =======================
-   EXPORTAR CSV
-======================= */
 function baixarHistorico() {
-    let conteudo = "Data,Hora,Temperatura\n" +
-        logsParaCSV.map(l => `${l.data},${l.hora},${l.valor}`).join("\n");
+    let conteudo = "Data,Hora,Temperatura\n" + logsParaCSV.map(l => `${l.data},${l.hora},${l.valor}`).join("\n");
     const blob = new Blob([conteudo], { type: 'text/csv' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
@@ -402,6 +355,5 @@ function baixarHistorico() {
     a.click();
 }
 </script>
-
 </body>
 </html>
