@@ -1,83 +1,24 @@
-#include <WiFi.h>
-#include <PubSubClient.h>
+BSD 2-Clause License
 
-// 1. CONFIGURAÇÕES DE CONEXÃO
-const char* ssid = "NOME_DO_SEU_WIFI";
-const char* password = "SENHA_DO_WIFI";
-const char* mqtt_server = "28c03fa8cec54867b74cdb6592fcbc33.s1.eu.hivemq.cloud";
-const int mqtt_port = 8883; // Porta segura SSL/TLS (ou 1883 se não usar SSL)
+Copyright (c) 2026, Alef
 
-// 2. TÓPICOS (Devem ser iguais aos do HTML)
-const char* TOPIC_TEMP   = "alefsilva/temperatura";
-const char* TOPIC_SALA_CMD = "alefsilva/sala/comando";
-const char* TOPIC_SALA_STAT = "alefsilva/sala/status";
+Redistribution and use in source and binary forms, with or without
+modification, are permitted provided that the following conditions are met:
 
-// 3. PINOS DOS COMPONENTES
-const int PIN_RELE_SALA = 2; // Exemplo: pino da lâmpada da sala
-const int PIN_SENSOR = 4;    // Exemplo: pino do sensor de temperatura
+1. Redistributions of source code must retain the above copyright notice, this
+   list of conditions and the following disclaimer.
 
-WiFiClientSecure espClient; // Use WiFiClient se não for SSL
-PubSubClient client(espClient);
+2. Redistributions in binary form must reproduce the above copyright notice,
+   this list of conditions and the following disclaimer in the documentation
+   and/or other materials provided with the distribution.
 
-void setup() {
-  Serial.begin(115200);
-  pinMode(PIN_RELE_SALA, OUTPUT);
-  
-  setup_wifi();
-  client.setServer(mqtt_server, mqtt_port);
-  client.setCallback(callback); // Define a função que "ouve" o painel
-}
-
-// FUNÇÃO QUE RECEBE COMANDOS DO PAINEL HTML
-void callback(char* topic, byte* payload, unsigned int length) {
-  String msg;
-  for (int i = 0; i < length; i++) msg += (char)payload[i];
-
-  Serial.print("Comando recebido: ");
-  Serial.println(msg);
-
-  // Se o comando for para a sala
-  if (String(topic) == TOPIC_SALA_CMD) {
-    if (msg == "ON") {
-      digitalWrite(PIN_RELE_SALA, HIGH); // Liga o relé
-      client.publish(TOPIC_SALA_STAT, "ON"); // CONFIRMA para o painel
-    } else {
-      digitalWrite(PIN_RELE_SALA, LOW); // Desliga o relé
-      client.publish(TOPIC_SALA_STAT, "OFF"); // CONFIRMA para o painel
-    }
-  }
-}
-
-void loop() {
-  if (!client.connected()) reconnect();
-  client.loop();
-
-  // ENVIO DE TEMPERATURA A CADA 5 SEGUNDOS
-  static unsigned long lastMsg = 0;
-  if (millis() - lastMsg > 5000) {
-    lastMsg = millis();
-    float temp = 25.5; // Aqui você lê o seu sensor (ex: dht.readTemperature())
-    char tempString[8];
-    dtostrf(temp, 1, 2, tempString);
-    
-    client.publish(TOPIC_TEMP, tempString); // Envia para o Gauge do painel
-  }
-}
-
-// --- FUNÇÕES DE CONEXÃO ---
-void setup_wifi() {
-  delay(10);
-  WiFi.begin(ssid, password);
-  while (WiFi.status() != WL_CONNECTED) delay(500);
-}
-
-void reconnect() {
-  while (!client.connected()) {
-    if (client.connect("ESP32_Alef", "AlefSilva12", "@Alef123")) {
-      client.subscribe(TOPIC_SALA_CMD); // ESCUTA o tópico de comando
-      // Adicione aqui o subscribe do quarto também
-    } else {
-      delay(5000);
-    }
-  }
-}
+THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE
+FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
+SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
+CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
+OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
