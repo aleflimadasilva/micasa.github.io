@@ -120,12 +120,19 @@ canvas { max-height: 150px; }
 <div id="home" class="tela active">
     <h2 style="text-align:center; margin-bottom: 30px;">🏠 Painel IoT</h2>
     <div class="home">
+    
+    <!--todos os cards do menu abaixo AQUI VC CRIA O CARD-->
         <div class="app-card" onclick="abrirTela('geral')">🌡️<span>Geral</span></div>
         <div class="app-card" onclick="abrirTela('sala')">🛋️<span>Sala</span></div>
         <div class="app-card" onclick="abrirTela('quarto')">🛏️<span>Quarto</span></div>
         <div class="app-card" onclick="abrirTela('banheiro')">🚿<span>Banheiro</span></div>
-    </div>
-</div>
+        
+        
+        <div class="app-card" onclick="abrirTela('Cozinha')">🚿<span>Cozinha</span></div>
+        
+        
+    </div> <!-- ESSE DIV É O FIM DO CONTEINER-->
+</div><!-- ESSE DIV É PARA INCLUIR ATEFATOS FORA DA ORGANIZACAO AUTOMATICA DO CONTEINER-->
 
 <div id="geral" class="tela">
     <div class="voltar" onclick="voltar()">⬅ Voltar</div>
@@ -156,11 +163,20 @@ canvas { max-height: 150px; }
         </div>
     </div>
 </div>
-
+      <!-- artefatos do carde sala -->
 <div id="sala" class="tela"><div class="voltar" onclick="voltar()">⬅ Voltar</div><div class="container"><div class="card"><h3>🛋️ Luz Sala</h3><div id="status-sala" class="lamp-status status-off">DESLIGADA</div><div class="control-group"><button class="btn-on" onclick="enviarComando('sala','ON')">LIGAR</button><button class="btn-off" onclick="enviarComando('sala','OFF')">DESLIGAR</button></div></div></div></div>
+
+   <!-- artefatos do card quarto -->
 <div id="quarto" class="tela"><div class="voltar" onclick="voltar()">⬅ Voltar</div><div class="container"><div class="card"><h3>🛏️ Luz Quarto</h3><div id="status-quarto" class="lamp-status status-off">DESLIGADA</div><div class="control-group"><button class="btn-on" onclick="enviarComando('quarto','ON')">LIGAR</button><button class="btn-off" onclick="enviarComando('quarto','OFF')">DESLIGAR</button></div></div></div></div>
+
+   <!-- artefatos do carde banheiro-->
+
 <div id="banheiro" class="tela"><div class="voltar" onclick="voltar()">⬅ Voltar</div><div class="container"><div class="card"><h3>🚿 Luz Banheiro</h3><div id="status-banheiro" class="lamp-status status-off">DESLIGADA</div><div class="control-group"><button class="btn-on" onclick="enviarComando('banheiro','ON')">LIGAR</button><button class="btn-off" onclick="enviarComando('banheiro','OFF')">DESLIGAR</button></div></div></div></div>
 
+   <!-- artefatos do carde teste de card cozinha-->
+<div id="Cozinha" class="tela"><div class="voltar" onclick="voltar()">⬅ Voltar</div><div class="container"><div class="card"><h3>🚿 Luz Banheiro</h3><div id="status-banheiro" class="lamp-status status-off">DESLIGADA</div><div class="control-group"><button class="btn-on" onclick="enviarComando('banheiro','ON')">LIGAR</button><button class="btn-off" onclick="enviarComando('banheiro','OFF')">DESLIGAR</button></div></div></div></div>
+
+   
 <script>
 function abrirTela(id) {
     document.querySelectorAll('.tela').forEach(t => t.classList.remove('active'));
