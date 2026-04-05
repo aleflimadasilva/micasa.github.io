@@ -2,33 +2,32 @@
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes">
 <title>Painel IoT 3.7 | Alef</title>
 
-<!-- 
-    ═══════════════════════════════════════════════════════════════
-    BIBLIOTECAS EXTERNAS
-    ═══════════════════════════════════════════════════════════════
-    - Chart.js: Cria gráficos bonitos e interativos
-    - NENHUMA CREDENCIAL MQTT AQUI! (agora está seguro)
-    ═══════════════════════════════════════════════════════════════
--->
+<!-- Bibliotecas -->
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
 <style>
 /* ═══════════════════════════════════════════════════════════════
    ESTILO GERAL - CORES E FUNDOS
    ═══════════════════════════════════════════════════════════════ */
+* {
+    box-sizing: border-box;
+}
+
 body {
     margin: 0;
     font-family: Arial, sans-serif;
     background: #0a0000;
     color: white;
+    padding: 10px;
 }
 
 /* ANIMAÇÃO DE ALERTA PARA TEMPERATURA ALTA */
 @keyframes piscar-alerta {
     0% { background: #111827; }
-    50% { background: #7f1d1d; }  /* Vermelho escuro */
+    50% { background: #7f1d1d; }
     100% { background: #111827; }
 }
 
@@ -43,54 +42,64 @@ body {
 .home {
     display: flex;
     flex-wrap: wrap;
-    gap: 25px;
+    gap: 15px;
     justify-content: center;
-    padding: 20px;
+    padding: 10px;
 }
 
 .app-card {
-    width: 180px; 
-    height: 180px;
+    width: calc(33.33% - 15px);
+    min-width: 100px;
+    max-width: 180px;
+    aspect-ratio: 1 / 1;
     background: #111827;
-    border-radius: 25px;
+    border-radius: 20px;
     display: flex;
-    flex-direction: column; 
+    flex-direction: column;
     justify-content: center;
     align-items: center;
     cursor: pointer;
     transition: transform 0.2s;
+    padding: 10px;
 }
 
-.app-card:hover { transform: scale(1.05); }
-.app-card { font-size: 40px; }
-.app-card span { margin-top: 15px; font-size: 18px; }
+.app-card:hover { transform: scale(1.02); }
+.app-card { font-size: 35px; }
+.app-card span { margin-top: 8px; font-size: 14px; text-align: center; }
 
 /* ═══════════════════════════════════════════════════════════════
-   TELAS INTERNAS (Sala, Quarto, Banheiro, etc)
+   TELAS INTERNAS
    ═══════════════════════════════════════════════════════════════ */
 .tela { display: none; padding: 20px; }
 .tela.active { display: block; }
 
 .voltar {
-    margin-bottom: 20px;
+    margin-bottom: 15px;
     cursor: pointer;
     color: #38bdf8;
     display: inline-block;
     padding: 8px 15px;
     border: 2px solid #38bdf8;
     border-radius: 10px;
+    font-size: 14px;
     transition: all 0.3s;
 }
 .voltar:hover { background: rgba(56, 189, 248, 0.1); }
 
-/* CONTAINER DE CARDS (organização flexível) */
-.container { display: flex; flex-wrap: wrap; gap: 20px; justify-content: center; }
+/* CONTAINER DE CARDS */
+.container { 
+    display: flex; 
+    flex-wrap: wrap; 
+    gap: 15px; 
+    justify-content: center; 
+}
 
 .card {
     background: #111827;
-    padding: 20px;
-    border-radius: 12px;
-    width: 320px;
+    padding: 15px;
+    border-radius: 16px;
+    width: 100%;
+    max-width: 350px;
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -98,29 +107,56 @@ body {
 }
 
 /* BOTÕES LIGAR/DESLIGAR */
-.control-group { display: flex; gap: 10px; margin-top: 10px; }
-.btn-on { background: #22c55e; border: none; padding: 10px; border-radius: 8px; cursor: pointer; flex: 1; font-weight: bold; transition: all 0.3s; }
-.btn-off { background: #ef4444; border: none; padding: 10px; border-radius: 8px; cursor: pointer; flex: 1; font-weight: bold; transition: all 0.3s; }
+.control-group { 
+    display: flex; 
+    gap: 15px; 
+    margin-top: 15px; 
+    width: 100%;
+}
+
+.btn-on, .btn-off { 
+    padding: 12px; 
+    font-size: 16px;
+    border-radius: 12px;
+    cursor: pointer;
+    flex: 1;
+    font-weight: bold;
+    transition: all 0.3s;
+    border: none;
+}
+
+.btn-on { background: #22c55e; }
+.btn-off { background: #ef4444; }
 .btn-on:hover { background: #15803d; transform: scale(1.02); }
 .btn-off:hover { background: #b91c1c; transform: scale(1.02); }
 
-.lamp-status { margin: 10px; font-weight: bold; font-size: 18px; }
-.status-on { color: #22c55e; }   /* Verde = Ligado */
-.status-off { color: #94a3b8; }  /* Cinza = Desligado */
+.lamp-status { 
+    margin: 10px; 
+    font-weight: bold; 
+    font-size: 18px; 
+}
 
-/* MEDIDOR ANALÓGICO DE TEMPERATURA */
-.gauge { display: flex; flex-direction: column; align-items: center; justify-content: center; width: 200px; margin: 20px auto 0 auto; }
-.gauge-visual { position: relative; width: 200px; height: 120px; }
+.status-on { color: #22c55e; }
+.status-off { color: #94a3b8; }
+
+/* MEDIDOR ANALÓGICO */
+.gauge { 
+    width: 100%; 
+    max-width: 200px; 
+    margin: 15px auto; 
+}
+
+.gauge-visual { position: relative; width: 100%; height: 120px; }
 .needle {
     width: 3px; height: 70px; background: #fff; position: absolute;
     bottom: 15px; left: 50%; transform-origin: center bottom;
     transform: translateX(-50%) rotate(-90deg); transition: transform 0.6s ease-in-out;
 }
-#gauge-temp { margin-top: 10px; font-size: 22px; font-weight: bold; }
-.status-inline { font-weight: bold; font-size: 16px; }
-canvas { max-height: 150px; }
+#gauge-temp { margin-top: 10px; font-size: 22px; font-weight: bold; text-align: center; }
+.status-inline { font-weight: bold; font-size: 14px; }
+canvas { width: 100% !important; height: auto !important; max-height: 200px; }
 
-/* Botão de download CSV */
+/* Botões */
 button {
     margin-top: 15px;
     background: #38bdf8;
@@ -130,10 +166,96 @@ button {
     cursor: pointer;
     font-weight: bold;
     transition: all 0.3s;
+    color: #000;
 }
 button:hover {
     background: #0284c7;
     transform: scale(1.02);
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   TABELAS DE HISTÓRICO
+   ═══════════════════════════════════════════════════════════════ */
+table {
+    border-collapse: collapse;
+    width: 100%;
+}
+
+th {
+    background: #1f2937;
+    padding: 8px;
+    text-align: center;
+    font-size: 11px;
+    position: sticky;
+    top: 0;
+    color: white;
+}
+
+td {
+    padding: 6px;
+    text-align: center;
+    font-size: 11px;
+    border-bottom: 1px solid #374151;
+}
+
+/* Scroll suave */
+div[style*="overflow-y: auto"] {
+    scrollbar-width: thin;
+    scrollbar-color: #38bdf8 #1f2937;
+}
+
+div[style*="overflow-y: auto"]::-webkit-scrollbar {
+    width: 6px;
+}
+
+div[style*="overflow-y: auto"]::-webkit-scrollbar-track {
+    background: #1f2937;
+    border-radius: 10px;
+}
+
+div[style*="overflow-y: auto"]::-webkit-scrollbar-thumb {
+    background: #38bdf8;
+    border-radius: 10px;
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   MEDIA QUERY PARA CELULARES
+   ═══════════════════════════════════════════════════════════════ */
+@media (max-width: 480px) {
+    .app-card {
+        width: calc(50% - 15px);
+        min-width: 80px;
+    }
+    
+    .app-card { font-size: 28px; }
+    .app-card span { font-size: 12px; }
+    
+    .card {
+        padding: 12px;
+        max-width: 100%;
+    }
+    
+    .gauge { max-width: 180px; }
+    
+    .btn-on, .btn-off { 
+        padding: 10px; 
+        font-size: 14px;
+    }
+    
+    .lamp-status { font-size: 16px; }
+    
+    h2 { font-size: 20px; }
+    h3 { font-size: 16px; }
+}
+
+@media (min-width: 481px) and (max-width: 768px) {
+    .app-card {
+        width: calc(33.33% - 15px);
+    }
+    
+    .card {
+        max-width: 320px;
+    }
 }
 </style>
 </head>
@@ -146,14 +268,12 @@ button:hover {
 <div id="home" class="tela active">
     <h2 style="text-align:center; margin-bottom: 30px;">🏠 Painel IoT</h2>
     <div class="home">
-        <!-- CADASTRE NOVOS CARDS AQUI! 
-             Basta copiar a linha abaixo e mudar o ícone, texto e ID -->
         <div class="app-card" onclick="abrirTela('geral')">🌡️<span>Geral</span></div>
         <div class="app-card" onclick="abrirTela('sala')">🛋️<span>Sala</span></div>
         <div class="app-card" onclick="abrirTela('quarto')">🛏️<span>Quarto</span></div>
         <div class="app-card" onclick="abrirTela('banheiro')">🚿<span>Banheiro</span></div>
         <div class="app-card" onclick="abrirTela('cozinha')">🍳<span>Cozinha</span></div>
-        <!-- Adicione novos cômodos aqui seguindo o mesmo padrão -->
+        <div class="app-card" onclick="abrirTela('historico')">📊<span>Histórico</span></div>
     </div>
 </div>
 
@@ -170,8 +290,7 @@ button:hover {
             </div>
             <div class="gauge">
                 <div class="gauge-visual">
-                    <!-- Medidor visual SVG -->
-                    <svg viewBox="0 0 200 120">
+                    <svg viewBox="0 0 200 120" style="width:100%; height:auto;">
                         <path d="M 20 100 A 80 80 0 0 1 180 100" stroke="#1f2937" stroke-width="12" fill="none"/>
                         <path d="M 20 100 A 80 80 0 0 1 100 20" stroke="#22c55e" stroke-width="12" fill="none"/>
                         <path d="M 100 20 A 80 80 0 0 1 180 100" stroke="#eab308" stroke-width="12" fill="none"/>
@@ -192,10 +311,8 @@ button:hover {
 </div>
 
 <!-- ═══════════════════════════════════════════════════════════════
-     TELAS DOS CÔMODOS (LUZES)
+     TELA DA SALA (LUZ + DHT11)
      ═══════════════════════════════════════════════════════════════ -->
-     
-<!-- TELA DA SALA -->
 <div id="sala" class="tela">
     <div class="voltar" onclick="voltar()">⬅ Voltar</div>
     <div class="container">
@@ -207,10 +324,20 @@ button:hover {
                 <button class="btn-off" onclick="enviarComando('sala','OFF', event)">🔌 DESLIGAR</button>
             </div>
         </div>
+        
+        <div class="card">
+            <h3>🌡️ Clima Sala</h3>
+            <div style="text-align: center; font-size: 24px;">
+                <div id="temp-sala">--°C</div>
+                <div id="umid-sala" style="font-size: 18px; margin-top: 10px;">💧 --%</div>
+            </div>
+        </div>
     </div>
 </div>
 
-<!-- TELA DO QUARTO -->
+<!-- ═══════════════════════════════════════════════════════════════
+     TELA DO QUARTO (LUZ + DHT11)
+     ═══════════════════════════════════════════════════════════════ -->
 <div id="quarto" class="tela">
     <div class="voltar" onclick="voltar()">⬅ Voltar</div>
     <div class="container">
@@ -222,10 +349,20 @@ button:hover {
                 <button class="btn-off" onclick="enviarComando('quarto','OFF', event)">🔌 DESLIGAR</button>
             </div>
         </div>
+        
+        <div class="card">
+            <h3>🌡️ Clima Quarto</h3>
+            <div style="text-align: center; font-size: 24px;">
+                <div id="temp-quarto">--°C</div>
+                <div id="umid-quarto" style="font-size: 18px; margin-top: 10px;">💧 --%</div>
+            </div>
+        </div>
     </div>
 </div>
 
-<!-- TELA DO BANHEIRO -->
+<!-- ═══════════════════════════════════════════════════════════════
+     TELA DO BANHEIRO
+     ═══════════════════════════════════════════════════════════════ -->
 <div id="banheiro" class="tela">
     <div class="voltar" onclick="voltar()">⬅ Voltar</div>
     <div class="container">
@@ -240,7 +377,9 @@ button:hover {
     </div>
 </div>
 
-<!-- TELA DA COZINHA -->
+<!-- ═══════════════════════════════════════════════════════════════
+     TELA DA COZINHA
+     ═══════════════════════════════════════════════════════════════ -->
 <div id="cozinha" class="tela">
     <div class="voltar" onclick="voltar()">⬅ Voltar</div>
     <div class="container">
@@ -256,28 +395,85 @@ button:hover {
 </div>
 
 <!-- ═══════════════════════════════════════════════════════════════
-     SCRIPT PRINCIPAL - LÓGICA DO SISTEMA
+     TELA DE HISTÓRICO (NOVA)
      ═══════════════════════════════════════════════════════════════ -->
+<div id="historico" class="tela">
+    <div class="voltar" onclick="voltar()">⬅ Voltar</div>
+    
+    <div class="container">
+        <!-- Histórico Geral -->
+        <div class="card">
+            <h3>📊 Histórico Geral</h3>
+            <p style="font-size:12px; margin:0 0 10px 0;">Temperatura do sensor DS18B20</p>
+            <div style="max-height: 300px; overflow-y: auto; width: 100%;">
+                <table style="width: 100%;">
+                    <thead>
+                        <tr><th>Data</th><th>Hora</th><th>Temperatura</th></tr>
+                    </thead>
+                    <tbody id="historico-geral-body"></tbody>
+                </table>
+            </div>
+            <button onclick="exportarExcel('geral')">📥 Exportar Geral (Excel)</button>
+        </div>
+        
+        <!-- Histórico Sala -->
+        <div class="card">
+            <h3>🛋️ Histórico Sala</h3>
+            <p style="font-size:12px; margin:0 0 10px 0;">Temperatura e Umidade (DHT11)</p>
+            <div style="max-height: 300px; overflow-y: auto; width: 100%;">
+                <table style="width: 100%;">
+                    <thead>
+                        <tr><th>Data</th><th>Hora</th><th>Temperatura</th><th>Umidade</th></tr>
+                    </thead>
+                    <tbody id="historico-sala-body"></tbody>
+                </table>
+            </div>
+            <button onclick="exportarExcel('sala')">📥 Exportar Sala (Excel)</button>
+        </div>
+        
+        <!-- Histórico Quarto -->
+        <div class="card">
+            <h3>🛏️ Histórico Quarto</h3>
+            <p style="font-size:12px; margin:0 0 10px 0;">Temperatura e Umidade (DHT11)</p>
+            <div style="max-height: 300px; overflow-y: auto; width: 100%;">
+                <table style="width: 100%;">
+                    <thead>
+                        <tr><th>Data</th><th>Hora</th><th>Temperatura</th><th>Umidade</th></tr>
+                    </thead>
+                    <tbody id="historico-quarto-body"></tbody>
+                </table>
+            </div>
+            <button onclick="exportarExcel('quarto')">📥 Exportar Quarto (Excel)</button>
+        </div>
+        
+        <!-- Exportação Completa -->
+        <div class="card">
+            <h3>📁 Exportação Completa</h3>
+            <p style="font-size:12px; margin:0 0 10px 0;">Exportar histórico de todos os cômodos em um único arquivo</p>
+            <button onclick="exportarExcel('todos')" style="background: #22c55e;">📥 Exportar TODOS os Cômodos</button>
+        </div>
+    </div>
+</div>
+
 <script>
 // ═══════════════════════════════════════════════════════════════════
-// CONFIGURAÇÃO DO BACKEND (NENHUMA CREDENCIAL MQTT AQUI!)
+// CONFIGURAÇÃO DO BACKEND
 // ═══════════════════════════════════════════════════════════════════
-// 
-// ⚠️ IMPORTANTE: Altere esta URL se seu backend estiver em outro lugar!
-// 
-// Se estiver rodando localmente:
-// const BACKEND_URL = "http://localhost:10000";
-// 
-// Se estiver rodando em um servidor online (ex: Render.com):
 const BACKEND_URL = "https://iot-backend-3nqz.onrender.com";
-// ═══════════════════════════════════════════════════════════════════
 
 // ═══════════════════════════════════════════════════════════════════
-// FUNÇÕES DE NAVEGAÇÃO ENTRE TELAS
+// FUNÇÕES DE NAVEGAÇÃO
 // ═══════════════════════════════════════════════════════════════════
 function abrirTela(id) {
     document.querySelectorAll('.tela').forEach(t => t.classList.remove('active'));
     document.getElementById(id).classList.add('active');
+    
+    // Recarrega históricos se for a tela de histórico
+    if (id === 'historico') {
+        carregarHistoricoGeral();
+        carregarHistoricoSala();
+        carregarHistoricoQuarto();
+    }
 }
 
 function voltar() { 
@@ -285,13 +481,12 @@ function voltar() {
 }
 
 // ═══════════════════════════════════════════════════════════════════
-// FUNÇÃO PARA ENVIAR COMANDOS (LIGAR/DESLIGAR)
+// FUNÇÃO PARA ENVIAR COMANDOS
 // ═══════════════════════════════════════════════════════════════════
 async function enviarComando(dispositivo, acao, event) {
     try {
         console.log(`📤 Enviando comando: ${dispositivo} -> ${acao}`);
         
-        // Feedback visual no botão clicado
         const btn = event?.target;
         let textoOriginal = '';
         if (btn) {
@@ -309,7 +504,6 @@ async function enviarComando(dispositivo, acao, event) {
         
         const resultado = await response.json();
         
-        // Restaura o botão
         if (btn) {
             setTimeout(() => {
                 btn.innerText = textoOriginal;
@@ -320,19 +514,13 @@ async function enviarComando(dispositivo, acao, event) {
         
         if (response.ok) {
             console.log(`✅ Comando ${acao} enviado para ${dispositivo}`);
-            // Atualiza visualmente o status localmente para feedback imediato
             atualizarLampada(dispositivo, acao);
         } else {
-            console.error(`❌ Erro ao enviar comando: ${resultado.erro || 'Erro desconhecido'}`);
+            console.error(`❌ Erro: ${resultado.erro || 'Erro desconhecido'}`);
             alert(`Erro ao enviar comando: ${resultado.erro || 'Tente novamente'}`);
         }
     } catch (erro) {
-        console.error("❌ Erro de conexão com o backend:", erro);
-        document.getElementById("status-mqtt").innerText = "🔴 Offline";
-        document.getElementById("status-mqtt").style.color = "#ef4444";
-        alert("Erro de conexão com o servidor. Verifique se o backend está rodando!");
-        
-        // Restaura o botão em caso de erro
+        console.error("❌ Erro de conexão:", erro);
         const btn = event?.target;
         if (btn) {
             btn.innerText = acao === 'ON' ? '💡 LIGAR' : '🔌 DESLIGAR';
@@ -343,7 +531,7 @@ async function enviarComando(dispositivo, acao, event) {
 }
 
 // ═══════════════════════════════════════════════════════════════════
-// FUNÇÃO PARA ATUALIZAR O STATUS VISUAL DAS LÂMPADAS
+// FUNÇÃO PARA ATUALIZAR STATUS DAS LÂMPADAS
 // ═══════════════════════════════════════════════════════════════════
 function atualizarLampada(local, estado) {
     const el = document.getElementById(`status-${local}`);
@@ -354,7 +542,7 @@ function atualizarLampada(local, estado) {
 }
 
 // ═══════════════════════════════════════════════════════════════════
-// FUNÇÃO PARA BUSCAR DADOS DO BACKEND (POLLING)
+// FUNÇÃO PARA BUSCAR DADOS (POLLING)
 // ═══════════════════════════════════════════════════════════════════
 async function buscarDados() {
     try {
@@ -368,16 +556,32 @@ async function buscarDados() {
         
         console.log("📡 Dados recebidos:", dados);
         
-        // Se temos temperatura, atualiza o medidor e gráfico
+        // Temperatura geral
         if (dados.temperatura !== null && dados.temperatura !== undefined) {
             processarTemperatura(dados.temperatura);
         }
         
-        // Atualiza o status de cada lâmpada
+        // Status das lâmpadas
         if (dados.dispositivos) {
             for (const [local, estado] of Object.entries(dados.dispositivos)) {
                 atualizarLampada(local, estado);
             }
+        }
+        
+        // Dados DHT11 Sala
+        if (dados.sala) {
+            const tempSala = document.getElementById("temp-sala");
+            const umidSala = document.getElementById("umid-sala");
+            if (tempSala) tempSala.innerText = dados.sala.temperatura ? `${dados.sala.temperatura}°C` : '--°C';
+            if (umidSala) umidSala.innerText = dados.sala.umidade ? `💧 ${dados.sala.umidade}%` : '💧 --%';
+        }
+        
+        // Dados DHT11 Quarto
+        if (dados.quarto) {
+            const tempQuarto = document.getElementById("temp-quarto");
+            const umidQuarto = document.getElementById("umid-quarto");
+            if (tempQuarto) tempQuarto.innerText = dados.quarto.temperatura ? `${dados.quarto.temperatura}°C` : '--°C';
+            if (umidQuarto) umidQuarto.innerText = dados.quarto.umidade ? `💧 ${dados.quarto.umidade}%` : '💧 --%';
         }
         
         // Atualiza indicador de conexão
@@ -388,71 +592,29 @@ async function buscarDados() {
         }
         
     } catch (erro) {
-        console.error("❌ Erro ao buscar dados do backend:", erro);
+        console.error("❌ Erro ao buscar dados:", erro);
         const statusEl = document.getElementById("status-mqtt");
         if (statusEl) {
-            statusEl.innerText = "🔴 Offline - Verificar backend";
+            statusEl.innerText = "🔴 Offline";
             statusEl.style.color = "#ef4444";
         }
     }
 }
 
 // ═══════════════════════════════════════════════════════════════════
-// FUNÇÃO PARA REGISTRAR TEMPERATURA NO HISTÓRICO DO BACKEND
-// ═══════════════════════════════════════════════════════════════════
-async function registrarHistorico(temperatura) {
-    try {
-        await fetch(`${BACKEND_URL}/api/historico`, {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ temperatura })
-        });
-    } catch (erro) {
-        console.error("❌ Erro ao salvar histórico:", erro);
-    }
-}
-
-// ═══════════════════════════════════════════════════════════════════
-// FUNÇÃO PARA CARREGAR HISTÓRICO SALVO NO BACKEND
-// ═══════════════════════════════════════════════════════════════════
-async function carregarHistorico() {
-    try {
-        const response = await fetch(`${BACKEND_URL}/api/historico`);
-        const historico = await response.json();
-        
-        if (window.meuGrafico && historico.length > 0) {
-            window.meuGrafico.data.labels = historico.map(h => h.hora);
-            window.meuGrafico.data.datasets[0].data = historico.map(h => h.valor);
-            window.meuGrafico.update();
-        }
-        
-        window.logsParaCSV = historico;
-        console.log(`📊 Histórico carregado: ${historico.length} registros`);
-        
-    } catch (erro) {
-        console.error("❌ Erro ao carregar histórico:", erro);
-    }
-}
-
-// ═══════════════════════════════════════════════════════════════════
-// FUNÇÃO PARA PROCESSAR TEMPERATURA (MEDIDOR + ALERTA + GRÁFICO)
+// FUNÇÃO PARA PROCESSAR TEMPERATURA
 // ═══════════════════════════════════════════════════════════════════
 function processarTemperatura(valor) {
     if (isNaN(valor)) return;
     
-    // Limita o valor entre -20°C e 100°C (limites do medidor)
     valor = Math.max(-20, Math.min(100, valor));
     
-    // Atualiza o texto da temperatura
     const displayTemp = document.getElementById("gauge-temp");
     const cardTemp = document.getElementById("card-temp");
     const statusMqtt = document.getElementById("status-mqtt");
     
     if (displayTemp) displayTemp.innerText = valor.toFixed(1) + " °C";
 
-    // ═══════════════════════════════════════════════════════════
-    // LÓGICA DE ALERTA: Se temperatura > 30°C, ativa alerta visual
-    // ═══════════════════════════════════════════════════════════
     if (valor > 30) {
         if (cardTemp) cardTemp.classList.add("alerta-ativo");
         if (statusMqtt && !statusMqtt.innerText.includes("Offline")) {
@@ -467,18 +629,12 @@ function processarTemperatura(valor) {
         }
     }
 
-    // ═══════════════════════════════════════════════════════════
-    // MOVIMENTO DO PONTEIRO DO MEDIDOR ANALÓGICO
-    // ═══════════════════════════════════════════════════════════
     let angulo = ((valor + 20) / 120) * 180 - 90;
     const needle = document.getElementById("needle");
     if (needle) {
         needle.style.transform = `translateX(-50%) rotate(${angulo}deg)`;
     }
 
-    // ═══════════════════════════════════════════════════════════
-    // ATUALIZAÇÃO DO GRÁFICO
-    // ═══════════════════════════════════════════════════════════
     const hora = new Date().toLocaleTimeString();
     const chart = window.meuGrafico;
     
@@ -486,7 +642,6 @@ function processarTemperatura(valor) {
         chart.data.labels.push(hora);
         chart.data.datasets[0].data.push(valor);
         
-        // Mantém apenas os últimos 15 pontos (rolagem automática)
         if (chart.data.labels.length > 15) {
             chart.data.labels.shift();
             chart.data.datasets[0].data.shift();
@@ -494,9 +649,6 @@ function processarTemperatura(valor) {
         chart.update();
     }
     
-    // ═══════════════════════════════════════════════════════════
-    // SALVA NO HISTÓRICO (para exportação CSV)
-    // ═══════════════════════════════════════════════════════════
     const logEntry = { 
         data: new Date().toLocaleDateString(), 
         hora, 
@@ -505,16 +657,11 @@ function processarTemperatura(valor) {
     
     if (!window.logsParaCSV) window.logsParaCSV = [];
     window.logsParaCSV.push(logEntry);
-    
-    // Limita o histórico local a 1000 registros (para não travar)
     if (window.logsParaCSV.length > 1000) window.logsParaCSV.shift();
-    
-    // Envia para o backend salvar permanentemente
-    registrarHistorico(valor);
 }
 
 // ═══════════════════════════════════════════════════════════════════
-// FUNÇÃO PARA BAIXAR HISTÓRICO COMO ARQUIVO CSV
+// FUNÇÃO PARA BAIXAR CSV
 // ═══════════════════════════════════════════════════════════════════
 function baixarHistorico() {
     if (!window.logsParaCSV || window.logsParaCSV.length === 0) {
@@ -522,24 +669,125 @@ function baixarHistorico() {
         return;
     }
     
-    // Cria o cabeçalho e as linhas do CSV
     let conteudo = "Data,Hora,Temperatura(°C)\n";
     conteudo += window.logsParaCSV.map(l => `${l.data},${l.hora},${l.valor}`).join("\n");
     
-    // Cria o arquivo e força o download
-    const blob = new Blob([conteudo], { type: 'text/csv;charset=utf-8;' });
+    const blob = new Blob(["\uFEFF" + conteudo], { type: 'text/csv;charset=utf-8;' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
     a.download = `historico_iot_${new Date().toISOString().slice(0,19).replace(/:/g, '-')}.csv`;
     a.click();
     URL.revokeObjectURL(url);
-    
-    console.log("📥 Histórico baixado com sucesso!");
 }
 
 // ═══════════════════════════════════════════════════════════════════
-// INICIALIZAÇÃO DO GRÁFICO (CHART.JS)
+// FUNÇÕES DE HISTÓRICO
+// ═══════════════════════════════════════════════════════════════════
+
+async function carregarHistoricoGeral() {
+    try {
+        const response = await fetch(`${BACKEND_URL}/api/historico/geral`);
+        const dados = await response.json();
+        
+        const tbody = document.getElementById("historico-geral-body");
+        if (!tbody) return;
+        
+        tbody.innerHTML = "";
+        const ultimos = dados.slice(0, 20);
+        
+        for (const item of ultimos) {
+            const row = tbody.insertRow();
+            row.insertCell(0).innerHTML = item.data || '-';
+            row.insertCell(1).innerHTML = item.hora || '-';
+            row.insertCell(2).innerHTML = item.temperatura ? `${item.temperatura}°C` : '-';
+            row.style.backgroundColor = tbody.rows.length % 2 === 0 ? '#1f2937' : '#111827';
+        }
+        
+        if (ultimos.length === 0) {
+            const row = tbody.insertRow();
+            const cell = row.insertCell(0);
+            cell.colSpan = 3;
+            cell.innerHTML = "Nenhum dado registrado ainda";
+            cell.style.textAlign = "center";
+        }
+    } catch (erro) {
+        console.error("Erro ao carregar histórico geral:", erro);
+    }
+}
+
+async function carregarHistoricoSala() {
+    try {
+        const response = await fetch(`${BACKEND_URL}/api/historico/sala`);
+        const dados = await response.json();
+        
+        const tbody = document.getElementById("historico-sala-body");
+        if (!tbody) return;
+        
+        tbody.innerHTML = "";
+        const ultimos = dados.slice(0, 20);
+        
+        for (const item of ultimos) {
+            const row = tbody.insertRow();
+            row.insertCell(0).innerHTML = item.data || '-';
+            row.insertCell(1).innerHTML = item.hora || '-';
+            row.insertCell(2).innerHTML = item.temperatura ? `${item.temperatura}°C` : '-';
+            row.insertCell(3).innerHTML = item.umidade ? `${item.umidade}%` : '-';
+            row.style.backgroundColor = tbody.rows.length % 2 === 0 ? '#1f2937' : '#111827';
+        }
+        
+        if (ultimos.length === 0) {
+            const row = tbody.insertRow();
+            const cell = row.insertCell(0);
+            cell.colSpan = 4;
+            cell.innerHTML = "Nenhum dado registrado ainda";
+            cell.style.textAlign = "center";
+        }
+    } catch (erro) {
+        console.error("Erro ao carregar histórico da sala:", erro);
+    }
+}
+
+async function carregarHistoricoQuarto() {
+    try {
+        const response = await fetch(`${BACKEND_URL}/api/historico/quarto`);
+        const dados = await response.json();
+        
+        const tbody = document.getElementById("historico-quarto-body");
+        if (!tbody) return;
+        
+        tbody.innerHTML = "";
+        const ultimos = dados.slice(0, 20);
+        
+        for (const item of ultimos) {
+            const row = tbody.insertRow();
+            row.insertCell(0).innerHTML = item.data || '-';
+            row.insertCell(1).innerHTML = item.hora || '-';
+            row.insertCell(2).innerHTML = item.temperatura ? `${item.temperatura}°C` : '-';
+            row.insertCell(3).innerHTML = item.umidade ? `${item.umidade}%` : '-';
+            row.style.backgroundColor = tbody.rows.length % 2 === 0 ? '#1f2937' : '#111827';
+        }
+        
+        if (ultimos.length === 0) {
+            const row = tbody.insertRow();
+            const cell = row.insertCell(0);
+            cell.colSpan = 4;
+            cell.innerHTML = "Nenhum dado registrado ainda";
+            cell.style.textAlign = "center";
+        }
+    } catch (erro) {
+        console.error("Erro ao carregar histórico do quarto:", erro);
+    }
+}
+
+function exportarExcel(comodo) {
+    const url = `${BACKEND_URL}/api/exportar/excel/${comodo}`;
+    window.open(url, '_blank');
+    console.log(`📥 Exportando histórico: ${comodo}`);
+}
+
+// ═══════════════════════════════════════════════════════════════════
+// INICIALIZAÇÃO DO GRÁFICO
 // ═══════════════════════════════════════════════════════════════════
 const ctx = document.getElementById('grafico').getContext('2d');
 window.meuGrafico = new Chart(ctx, {
@@ -564,9 +812,7 @@ window.meuGrafico = new Chart(ctx, {
         plugins: {
             legend: { display: true, position: 'top', labels: { color: 'white', font: { size: 12 } } },
             tooltip: { 
-                callbacks: { 
-                    label: (ctx) => `${ctx.raw.toFixed(1)}°C` 
-                },
+                callbacks: { label: (ctx) => `${ctx.raw.toFixed(1)}°C` },
                 backgroundColor: '#1f2937',
                 titleColor: '#fff'
             }
@@ -581,7 +827,7 @@ window.meuGrafico = new Chart(ctx, {
             },
             x: { 
                 title: { display: true, text: 'Horário', color: '#94a3b8' }, 
-                ticks: { color: '#94a3b8', maxRotation: 45, minRotation: 45 } ,
+                ticks: { color: '#94a3b8', maxRotation: 45, minRotation: 45 },
                 grid: { color: '#1f2937' }
             }
         }
@@ -593,20 +839,20 @@ window.meuGrafico = new Chart(ctx, {
 // ═══════════════════════════════════════════════════════════════════
 window.logsParaCSV = [];
 
-// Carrega histórico salvo ao iniciar
-carregarHistorico();
-
-// Busca dados a cada 2 segundos (polling)
+// Busca dados a cada 2 segundos
 setInterval(buscarDados, 2000);
-
-// Busca dados imediatamente ao carregar a página
 buscarDados();
 
-// Mensagem de boas-vindas no console (para debug)
+// Carrega históricos
+setTimeout(() => {
+    carregarHistoricoGeral();
+    carregarHistoricoSala();
+    carregarHistoricoQuarto();
+}, 1000);
+
 console.log("✅ Painel IoT inicializado!");
 console.log(`📡 Backend configurado em: ${BACKEND_URL}`);
-console.log("💡 Abra o Console do Navegador (F12) para ver os logs");
-console.log("🎮 Botões de ligar/desligar devem funcionar agora!");
+console.log("💡 Abra o Console (F12) para ver os logs");
 </script>
 
 </body>
