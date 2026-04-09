@@ -274,6 +274,10 @@ div[style*="overflow-y: auto"]::-webkit-scrollbar-thumb {
         <div class="app-card" onclick="abrirTela('banheiro')">🚿<span>Banheiro</span></div>
         <div class="app-card" onclick="abrirTela('cozinha')">🍳<span>Cozinha</span></div>
         <div class="app-card" onclick="abrirTela('historico')">📊<span>Histórico</span></div>
+        
+         <div class="app-card" onclick="abrirTela('QUARTINHO')"> &#x1F635<span>Quartinho da bagunça</span></div>
+        
+        
     </div>
 </div>
 
@@ -393,6 +397,166 @@ div[style*="overflow-y: auto"]::-webkit-scrollbar-thumb {
         </div>
     </div>
 </div>
+
+
+<!-- ═══════════════════════════════════════════════════════════════
+     TELA QUARTINHO DA BAGUNCA
+     ═══════════════════════════════════════════════════════════════ -->
+<div id="QUARTINHO" class="tela">
+    <div class="voltar" onclick="voltar()">⬅ Voltar</div>
+    <div class="container">
+        <div class="card">
+            <h3> QUARTINHO DA BAGUNÇA</h3>
+            <div id="status-QUARTINHO" class="lamp-status status-off">⚫ DESLIGADA</div>
+            <div class="control-group">
+                <button class="btn-on" onclick="enviarComando('QUARTINHO','ON', event)">💡 LIGAR</button>
+                <button class="btn-off" onclick="enviarComando('QUARTINHO','OFF', event)">🔌 DESLIGAR</button>
+            </div>
+            
+         <!--- TEMPORIZADOR -->
+
+    <title>Temporizador de Lâmpada</title>
+    
+    <style>
+        /* --- ESTILO (A PARTE VISUAL) --- */
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            color: white;
+            margin: 0;
+        }
+
+       
+
+        /* Configurações da Lâmpada (Emoji) */
+        #lampada {
+            font-size: 50px; /* Tamanho da lâmpada */
+            margin-bottom: 28px;
+            transition: 0.5s; /* Faz o brilho aparecer suavemente */
+            filter: grayscale(100%); /* Começa cinza (apagada) */
+            opacity: 0.3; /* Começa meio transparente */
+        }
+
+        /* Estilo de quando a lâmpada está ACESA */
+        .acesa {
+            filter: grayscale(0%) !important; /* Volta a cor original (amarelo) */
+            opacity: 1 !important;
+            text-shadow: 0 0 40px #ffdb58; /* Cria o efeito de luz brilhando */
+        }
+
+        /* Estilo dos campos de texto e botões */
+        input {
+            padding: 12px;
+            border-radius: 8px;
+            border: none;
+            width: 80px;
+            font-size: 18px;
+            outline: none;
+        }
+
+        button {
+            padding: 12px 25px;
+            border-radius: 8px;
+            border: none;
+            background-color: #15803d; /* Cor do botão */
+            color: #333;
+            font-weight: bold;
+            cursor: pointer;
+            font-size: 15px;
+            margin-left: 10px;
+            transition: 0.2s;
+        }
+
+        button:hover {
+            background-color: #ffd22e; /* Cor quando passa o mouse */
+            transform: scale(1.05); /* Aumenta um pouquinho o botão */
+        }
+
+        #cronometro {
+            margin-top: 10px;
+            font-size: 28px;
+            color: #ffffff;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <h2>Temporizador</h2>
+        
+        <!-- Este é o elemento que vamos "acender" e "apagar" -->
+        <div id="lampada">💡</div>
+
+        <div>
+            <!-- Usuário digita os minutos aqui -->
+            <input type="number" id="minutosInput" placeholder="Min" min="1">
+            <button onclick="iniciarTemporizador()">Timer</button>
+        </div>
+
+        <!-- Onde o tempo vai aparecer diminuindo -->
+        <div id="cronometro">--:--</div>
+    </div>
+
+    <script>
+        /* --- LÓGICA (O CÉREBRO DO CÓDIGO) --- */
+        let contador; // Guarda o intervalo para podermos pará-lo depois
+
+        function iniciarTemporizador() {
+            // 1. Pegamos os elementos da tela para usar no código
+            const input = document.getElementById('minutosInput');
+            const lampada = document.getElementById('lampada');
+            const display = document.getElementById('cronometro');
+            
+            // 2. Pegamos o valor digitado e convertemos para segundos (Minutos * 60)
+            let segundosRestantes = parseInt(input.value) * 60;
+
+            // 3. Verificação: Se o campo estiver vazio ou for zero, avisa o usuário
+            if (isNaN(segundosRestantes) || segundosRestantes <= 0) {
+                alert("Ops! Digite quantos minutos você quer deixar a luz acesa.");
+                return;
+            }
+
+            // 4. Se já houver um timer rodando, a gente para ele antes de começar o novo
+            clearInterval(contador);
+            
+            // 5. Acende a lâmpada (adiciona a classe CSS que brilha)
+            lampada.classList.add('acesa');
+
+            // 6. Criamos a função que roda a cada 1 segundo (1000 milissegundos)
+            contador = setInterval(() => {
+                segundosRestantes--; // Diminui 1 segundo a cada rodada
+
+                // Cálculos para transformar segundos totais em Minutos:Segundos
+                let m = Math.floor(segundosRestantes / 60);
+                let s = segundosRestantes % 60;
+                
+                // Formatação: padStart(2, '0') faz o "5" virar "05" para ficar bonito
+                display.innerText = `${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
+
+                // 7. Quando o tempo chegar a zero...
+                if (segundosRestantes <= 0) {
+                    clearInterval(contador); // Para o relógio
+                    lampada.classList.remove('acesa'); // Apaga a lâmpada
+                    display.innerText = "Tempo esgotado! 🌑"; // Mensagem final
+                }
+            }, 1000); 
+        }
+    </script>
+
+</body>
+</html>
+
+        </div>
+    </div>
+</div>
+
+
+
 
 <!-- ═══════════════════════════════════════════════════════════════
      TELA DE HISTÓRICO (NOVA)
