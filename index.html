@@ -273,9 +273,7 @@ div[style*="overflow-y: auto"]::-webkit-scrollbar-thumb {
         <div class="app-card" onclick="abrirTela('quarto')">🛏️<span>Quarto</span></div>
         <div class="app-card" onclick="abrirTela('banheiro')">🚿<span>Banheiro</span></div>
         <div class="app-card" onclick="abrirTela('cozinha')">🍳<span>Cozinha</span></div>
-        <div class="app-card" onclick="abrirTela('historico')">📊<span>Histórico</span></div>
-        
-         <div class="app-card" onclick="abrirTela('QUARTINHO')"> &#x1F635<span>Quartinho da bagunça</span></div>
+        <div class="app-card" onclick="abrirTela('QUARTINHO')"> &#x1F635<span>Quartinho da bagunça</span></div>
         
         
     </div>
@@ -307,9 +305,54 @@ div[style*="overflow-y: auto"]::-webkit-scrollbar-thumb {
         </div>
 
         <div class="card">
-            <h3>📈 Histórico de Temperatura</h3>
-            <canvas id="grafico"></canvas>
-            <button onclick="baixarHistorico()">📥 Baixar CSV</button>
+            <h3>📊 Histórico Geral</h3>
+            <p style="font-size:12px; margin:0 0 10px 0;">Temperatura do sensor DS18B20</p>
+            <div style="max-height: 300px; overflow-y: auto; width: 100%;">
+                <table style="width: 100%;">
+                    <thead>
+                        <tr><th>Data</th><th>Hora</th><th>Temperatura</th></tr>
+                    </thead>
+                    <tbody id="historico-geral-body"></tbody>
+                </table>
+            </div>
+            <button onclick="exportarExcel('geral')">📥 Exportar Geral (Excel)</button>
+        </div>
+        
+        <!-- Histórico Sala -->
+        <div class="card">
+            <h3>🛋️ Histórico Sala</h3>
+            <p style="font-size:12px; margin:0 0 10px 0;">Temperatura e Umidade (DHT11)</p>
+            <div style="max-height: 300px; overflow-y: auto; width: 100%;">
+                <table style="width: 100%;">
+                    <thead>
+                        <tr><th>Data</th><th>Hora</th><th>Temperatura</th><th>Umidade</th></tr>
+                    </thead>
+                    <tbody id="historico-sala-body"></tbody>
+                </table>
+            </div>
+            <button onclick="exportarExcel('sala')">📥 Exportar Sala (Excel)</button>
+        </div>
+        
+        <!-- Histórico Quarto -->
+        <div class="card">
+            <h3>🛏️ Histórico Quarto</h3>
+            <p style="font-size:12px; margin:0 0 10px 0;">Temperatura e Umidade (DHT11)</p>
+            <div style="max-height: 300px; overflow-y: auto; width: 100%;">
+                <table style="width: 100%;">
+                    <thead>
+                        <tr><th>Data</th><th>Hora</th><th>Temperatura</th><th>Umidade</th></tr>
+                    </thead>
+                    <tbody id="historico-quarto-body"></tbody>
+                </table>
+            </div>
+            <button onclick="exportarExcel('quarto')">📥 Exportar Quarto (Excel)</button>
+        </div>
+        
+        <!-- Exportação Completa -->
+        <div class="card">
+            <h3>📁 Exportação Completa</h3>
+            <p style="font-size:12px; margin:0 0 10px 0;">Exportar histórico de todos os cômodos em um único arquivo</p>
+            <button onclick="exportarExcel('todos')" style="background: #22c55e;">📥 Exportar TODOS os Cômodos</button>
         </div>
     </div>
 </div>
@@ -682,66 +725,7 @@ div[style*="overflow-y: auto"]::-webkit-scrollbar-thumb {
 
 
 
-<!-- ═══════════════════════════════════════════════════════════════
-     TELA DE HISTÓRICO (NOVA)
-     ═══════════════════════════════════════════════════════════════ -->
-<div id="historico" class="tela">
-    <div class="voltar" onclick="voltar()">⬅ Voltar</div>
-    
-    <div class="container">
-        <!-- Histórico Geral -->
-        <div class="card">
-            <h3>📊 Histórico Geral</h3>
-            <p style="font-size:12px; margin:0 0 10px 0;">Temperatura do sensor DS18B20</p>
-            <div style="max-height: 300px; overflow-y: auto; width: 100%;">
-                <table style="width: 100%;">
-                    <thead>
-                        <tr><th>Data</th><th>Hora</th><th>Temperatura</th></tr>
-                    </thead>
-                    <tbody id="historico-geral-body"></tbody>
-                </table>
-            </div>
-            <button onclick="exportarExcel('geral')">📥 Exportar Geral (Excel)</button>
-        </div>
-        
-        <!-- Histórico Sala -->
-        <div class="card">
-            <h3>🛋️ Histórico Sala</h3>
-            <p style="font-size:12px; margin:0 0 10px 0;">Temperatura e Umidade (DHT11)</p>
-            <div style="max-height: 300px; overflow-y: auto; width: 100%;">
-                <table style="width: 100%;">
-                    <thead>
-                        <tr><th>Data</th><th>Hora</th><th>Temperatura</th><th>Umidade</th></tr>
-                    </thead>
-                    <tbody id="historico-sala-body"></tbody>
-                </table>
-            </div>
-            <button onclick="exportarExcel('sala')">📥 Exportar Sala (Excel)</button>
-        </div>
-        
-        <!-- Histórico Quarto -->
-        <div class="card">
-            <h3>🛏️ Histórico Quarto</h3>
-            <p style="font-size:12px; margin:0 0 10px 0;">Temperatura e Umidade (DHT11)</p>
-            <div style="max-height: 300px; overflow-y: auto; width: 100%;">
-                <table style="width: 100%;">
-                    <thead>
-                        <tr><th>Data</th><th>Hora</th><th>Temperatura</th><th>Umidade</th></tr>
-                    </thead>
-                    <tbody id="historico-quarto-body"></tbody>
-                </table>
-            </div>
-            <button onclick="exportarExcel('quarto')">📥 Exportar Quarto (Excel)</button>
-        </div>
-        
-        <!-- Exportação Completa -->
-        <div class="card">
-            <h3>📁 Exportação Completa</h3>
-            <p style="font-size:12px; margin:0 0 10px 0;">Exportar histórico de todos os cômodos em um único arquivo</p>
-            <button onclick="exportarExcel('todos')" style="background: #22c55e;">📥 Exportar TODOS os Cômodos</button>
-        </div>
-    </div>
-</div>
+
 
 <script>
 // ═══════════════════════════════════════════════════════════════════
